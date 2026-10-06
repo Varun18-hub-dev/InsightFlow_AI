@@ -12,6 +12,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.db.models import Base  # noqa: E402
 from app.core.config import settings  # noqa: E402
 
+from app.db.base import _get_async_database_url_and_args  # noqa: E402
+from sqlalchemy.ext.asyncio import create_async_engine
+
 config = context.config
 
 if config.config_file_name is not None:
@@ -19,7 +22,8 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+db_url, connect_args = _get_async_database_url_and_args(settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:
@@ -41,9 +45,9 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    connectable = create_async_engine(
+        db_url,
+        connect_args=connect_args,
         poolclass=pool.NullPool,
     )
     async with connectable.connect() as connection:
