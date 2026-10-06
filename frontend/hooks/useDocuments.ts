@@ -1,0 +1,5 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; import { apiClient } from '@/lib/api'; import toast from 'react-hot-toast';
+export function useDocuments() { return useQuery({ queryKey: ['documents'], queryFn: apiClient.documents.list }); }
+export function useDocument(id: string) { return useQuery({ queryKey: ['document', id], queryFn: () => apiClient.documents.get(id), enabled: !!id }); }
+export function useUploadDocument() { const queryClient = useQueryClient(); return useMutation({ mutationFn: apiClient.documents.upload, onSuccess: () => { queryClient.invalidateQueries({queryKey: ['documents']}); toast.success('Document uploaded successfully'); }, onError: () => toast.error('Upload failed') }); }
+export function useDeleteDocument() { const queryClient = useQueryClient(); return useMutation({ mutationFn: apiClient.documents.delete, onSuccess: () => { queryClient.invalidateQueries({queryKey: ['documents']}); toast.success('Document deleted'); }, onError: () => toast.error('Deletion failed') }); }

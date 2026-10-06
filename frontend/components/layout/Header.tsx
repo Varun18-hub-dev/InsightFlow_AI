@@ -1,0 +1,2 @@
+import { useAuth } from "@/hooks/useAuth"; import { Button } from "../ui/button"; import { LogOut, User } from "lucide-react";
+export function Header() { const { user, logout } = useAuth(); return (<header className="flex h-16 items-center justify-end border-b px-6 bg-white"><div className="flex items-center gap-4"><div className="flex items-center gap-2 text-sm font-medium text-gray-700"><User className="h-5 w-5" />{user?.full_name || 'User'}</div><Button variant="ghost" size="sm" onClick={logout}><LogOut className="h-4 w-4 mr-2"/>Logout</Button></div></header>); }

@@ -1,0 +1,5 @@
+"use client"; import { useQuery } from "@tanstack/react-query"; import { apiClient } from "@/lib/api"; import { Card, CardContent } from "@/components/ui/card";
+export default function Experiments() {
+  const { data: exp } = useQuery({ queryKey: ['experiments'], queryFn: apiClient.experiments.list });
+  return (<div className="space-y-6"><h1 className="text-2xl font-bold">Experiments</h1><Card><CardContent className="p-0"><table className="w-full text-sm text-left"><thead className="bg-gray-50"><tr><th className="px-6 py-3">Name</th><th className="px-6 py-3">Stage</th><th className="px-6 py-3">Artifacts</th></tr></thead><tbody>{exp?.map(e => (<tr key={e.experiment_id} className="border-b"><td className="px-6 py-4">{e.name}</td><td className="px-6 py-4">{e.lifecycle_stage}</td><td className="px-6 py-4 truncate max-w-xs" title={e.artifact_location}>{e.artifact_location}</td></tr>))}</tbody></table></CardContent></Card></div>);
+}

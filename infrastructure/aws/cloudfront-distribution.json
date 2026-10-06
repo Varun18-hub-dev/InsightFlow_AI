@@ -1,0 +1,41 @@
+{
+  "CallerReference": "insightflow-cf-dist-1",
+  "Aliases": {
+    "Quantity": 1,
+    "Items": ["app.insightflow.ai"]
+  },
+  "DefaultRootObject": "index.html",
+  "Origins": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Id": "ALB-Origin",
+        "DomainName": "insightflow-alb.us-east-1.elb.amazonaws.com",
+        "CustomOriginConfig": {
+          "HTTPPort": 80,
+          "HTTPSPort": 443,
+          "OriginProtocolPolicy": "https-only"
+        }
+      }
+    ]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "ALB-Origin",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "AllowedMethods": {
+      "Quantity": 7,
+      "Items": ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    },
+    "ForwardedValues": {
+      "QueryString": true,
+      "Cookies": {
+        "Forward": "all"
+      }
+    },
+    "MinTTL": 0,
+    "DefaultTTL": 0,
+    "MaxTTL": 0
+  },
+  "Comment": "InsightFlow Frontend CloudFront Distribution",
+  "Enabled": true
+}

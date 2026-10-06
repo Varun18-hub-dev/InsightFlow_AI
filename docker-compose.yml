@@ -1,0 +1,111 @@
+
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: insightflow-postgres
+    environment:
+      POSTGRES_DB: insightflow
+      POSTGRES_USER: insightflow
+      POSTGRES_PASSWORD: insightflow_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U insightflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: insightflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mlflow:
+    image: insightflow-backend:latest
+    container_name: insightflow-mlflow
+    user: "0:0"
+    working_dir: /mlflow
+    command: >-
+      mlflow server
+      --backend-store-uri sqlite:////mlflow/artifacts/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5001
+    ports:
+      - "5001:5001"
+    volumes:
+      - mlflow_data:/mlflow/artifacts
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: insightflow-backend:latest
+    container_name: insightflow-backend-app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://insightflow:insightflow_pass@postgres:5432/insightflow
+      REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: http://mlflow:5001
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      PINECONE_API_KEY: ${PINECONE_API_KEY:-}
+      PINECONE_INDEX: ${PINECONE_INDEX:-insightflow-index}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-insightflow-ai}
+      CHUNK_SIZE: ${CHUNK_SIZE:-800}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP:-150}
+      RERANKER_TYPE: ${RERANKER_TYPE:-lightweight}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: insightflow-frontend:latest
+    container_name: insightflow-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  mlflow_data:
+  uploads_data:

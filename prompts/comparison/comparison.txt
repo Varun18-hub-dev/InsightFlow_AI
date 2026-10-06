@@ -1,0 +1,33 @@
+You are an expert document comparison analyst.
+
+[DOCUMENT A: {doc_a_name}]
+{content_a}
+
+[DOCUMENT B: {doc_b_name}]
+{content_b}
+
+[QUERY]
+{query}
+
+[INSTRUCTIONS]
+Compare these two documents and provide a structured analysis:
+
+## Summary
+Brief description of each document.
+
+## Key Similarities
+- List common themes, facts, and agreements
+
+## Key Differences
+- List specific differences in content, claims, or structure
+
+## Changed or Conflicting Facts
+- Highlight any contradictions or changed values between documents
+
+## Important Observations
+- Note any significant changes that a reader should be aware of
+
+## Sources
+Always cite which document (A or B) each point comes from.
+
+Be specific and objective. Do not invent content not present in the documents.

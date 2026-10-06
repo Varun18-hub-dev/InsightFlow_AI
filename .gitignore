@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.env
+venv/
+.venv/
+
+# Node
+node_modules/
+.next/
+out/
+
+# Docker
+*.tar
+
+# Secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+*.pem
+*.key
+
+# Data
+uploads/
+*.db
+*.sqlite
+
+# MLflow
+mlruns/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,24 @@
+﻿{
+  "ReplicationGroupId": "insightflow-redis",
+  "ReplicationGroupDescription": "InsightFlow AI Redis cache cluster",
+  "CacheNodeType": "cache.t3.medium",
+  "Engine": "redis",
+  "EngineVersion": "7.0",
+  "NumCacheClusters": 2,
+  "AutomaticFailoverEnabled": true,
+  "MultiAZEnabled": true,
+  "AtRestEncryptionEnabled": true,
+  "TransitEncryptionEnabled": true,
+  "AuthToken": "REPLACE_WITH_STRONG_AUTH_TOKEN",
+  "CacheSubnetGroupName": "insightflow-cache-subnet-group",
+  "SecurityGroupIds": ["sg-REPLACE_WITH_YOUR_SG_ID"],
+  "SnapshotRetentionLimit": 7,
+  "SnapshotWindow": "02:00-03:00",
+  "PreferredMaintenanceWindow": "Mon:03:00-Mon:04:00",
+  "AutoMinorVersionUpgrade": true,
+  "Tags": [
+    {"Key": "Project", "Value": "InsightFlow"},
+    {"Key": "Environment", "Value": "production"},
+    {"Key": "ManagedBy", "Value": "IaC"}
+  ]
+}

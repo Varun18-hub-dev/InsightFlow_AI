@@ -1,0 +1,6 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'; import { apiClient } from '@/lib/api'; import { useAuthStore } from '@/lib/store'; import { useRouter } from 'next/navigation'; import toast from 'react-hot-toast';
+export function useAuth() { const { token, setUser, setToken, logout, isAuthenticated } = useAuthStore(); const router = useRouter(); const queryClient = useQueryClient();
+  const login = useMutation({ mutationFn: (d: any) => apiClient.auth.login(d.email, d.password), onSuccess: (data) => { setToken(data.access_token); router.push('/dashboard'); }, onError: () => toast.error("Login failed") });
+  const register = useMutation({ mutationFn: (d: any) => apiClient.auth.register(d.email, d.password, d.full_name), onSuccess: (data) => { setToken(data.access_token); router.push('/dashboard'); }, onError: () => toast.error("Registration failed") });
+  const user = useQuery({ queryKey: ['me'], queryFn: async () => { const u = await apiClient.auth.me(); setUser(u); return u; }, enabled: !!token });
+  return { login, register, user: user.data, isLoading: user.isLoading, logout: () => { logout(); queryClient.clear(); router.push('/login'); }, isAuthenticated }; }

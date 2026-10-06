@@ -1,0 +1,10 @@
+[DOCUMENT CONTEXT]
+{context}
+
+[QUESTION]
+{question}
+
+[INSTRUCTIONS]
+Answer the question using ONLY the information in [DOCUMENT CONTEXT].
+For each fact, cite the source as (Source: {document_name}, Page {page_number}).
+If the context does not contain sufficient information, state: "The requested information could not be found in the provided documents."

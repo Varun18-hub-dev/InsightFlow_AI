@@ -1,0 +1,29 @@
+﻿{
+  "DBInstanceIdentifier": "insightflow-postgres",
+  "DBInstanceClass": "db.t3.medium",
+  "Engine": "postgres",
+  "EngineVersion": "15.4",
+  "MasterUsername": "insightflow",
+  "DBName": "insightflow",
+  "AllocatedStorage": 20,
+  "MaxAllocatedStorage": 100,
+  "StorageType": "gp3",
+  "StorageEncrypted": true,
+  "MultiAZ": true,
+  "BackupRetentionPeriod": 7,
+  "PreferredBackupWindow": "03:00-04:00",
+  "PreferredMaintenanceWindow": "Mon:04:00-Mon:05:00",
+  "DeletionProtection": true,
+  "EnablePerformanceInsights": true,
+  "PerformanceInsightsRetentionPeriod": 7,
+  "DBParameterGroupName": "default.postgres15",
+  "VpcSecurityGroupIds": ["sg-REPLACE_WITH_YOUR_SG_ID"],
+  "DBSubnetGroupName": "insightflow-db-subnet-group",
+  "PubliclyAccessible": false,
+  "AutoMinorVersionUpgrade": true,
+  "Tags": [
+    {"Key": "Project", "Value": "InsightFlow"},
+    {"Key": "Environment", "Value": "production"},
+    {"Key": "ManagedBy", "Value": "IaC"}
+  ]
+}

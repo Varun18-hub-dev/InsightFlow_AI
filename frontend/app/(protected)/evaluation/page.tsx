@@ -1,0 +1,6 @@
+"use client"; import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"; import { apiClient } from "@/lib/api"; import { Button } from "@/components/ui/button"; import { Card, CardContent } from "@/components/ui/card";
+export default function Evaluation() {
+  const qc = useQueryClient(); const { data: evals } = useQuery({ queryKey: ['evals'], queryFn: apiClient.evaluations.list });
+  const run = useMutation({ mutationFn: () => apiClient.evaluations.run(), onSuccess: () => qc.invalidateQueries({queryKey:['evals']}) });
+  return (<div className="space-y-6"><div className="flex justify-between items-center"><h1 className="text-2xl font-bold">Evaluations</h1><Button onClick={() => run.mutate()} disabled={run.isPending}>{run.isPending ? 'Running...' : 'Run Evaluation'}</Button></div><Card><CardContent className="p-0"><table className="w-full text-sm text-left"><thead className="bg-gray-50"><tr><th className="px-6 py-3">Name</th><th className="px-6 py-3">Status</th><th className="px-6 py-3">Results</th></tr></thead><tbody>{evals?.map(e => (<tr key={e.id} className="border-b"><td className="px-6 py-4">{e.name}</td><td className="px-6 py-4">{e.status}</td><td className="px-6 py-4"><pre className="text-xs">{JSON.stringify(e.results, null, 2)}</pre></td></tr>))}</tbody></table></CardContent></Card></div>);
+}

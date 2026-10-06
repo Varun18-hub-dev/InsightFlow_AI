@@ -1,0 +1,5 @@
+"use client"; import { useQuery } from "@tanstack/react-query"; import { apiClient } from "@/lib/api"; import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+export default function Settings() {
+  const { data: health } = useQuery({ queryKey: ['health'], queryFn: apiClient.health.check });
+  return (<div className="space-y-6"><h1 className="text-2xl font-bold">Settings</h1><Card><CardHeader><CardTitle>System Information</CardTitle></CardHeader><CardContent><div className="space-y-4"><div className="grid grid-cols-2 gap-4 border-b pb-4"><div><p className="text-sm text-gray-500">API Version</p><p className="font-medium">{health?.version || 'Unknown'}</p></div><div><p className="text-sm text-gray-500">Status</p><p className="font-medium text-green-600">{health?.status || 'Unknown'}</p></div></div><div className="text-sm text-gray-600"><p>Configure environment variables on the server to change LLM providers, database connections, and API keys.</p></div></div></CardContent></Card></div>);
+}

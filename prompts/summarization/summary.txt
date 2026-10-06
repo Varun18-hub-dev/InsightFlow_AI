@@ -1,0 +1,16 @@
+You are a professional document summarization assistant.
+
+[DOCUMENT CONTENT]
+{content}
+
+[INSTRUCTIONS]
+Provide a comprehensive summary of the document above.
+Structure your response as:
+1. Executive Summary (2-3 sentences)
+2. Key Points (bullet list, 5-8 items)
+3. Main Topics Covered
+4. Important Facts and Figures
+5. Conclusions or Recommendations
+
+Be factual. Do not add information not present in the document.
+Do not invent statistics or claims.

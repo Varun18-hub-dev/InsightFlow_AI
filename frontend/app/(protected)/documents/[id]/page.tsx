@@ -1,0 +1,8 @@
+"use client"; import { useParams } from "next/navigation"; import { useQuery } from "@tanstack/react-query"; import { apiClient } from "@/lib/api"; import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; import { Button } from "@/components/ui/button"; import { useState } from "react";
+export default function DocumentDetail() {
+  const { id } = useParams(); const [summary, setSummary] = useState(""); const [loading, setLoading] = useState(false);
+  const { data: doc } = useQuery({ queryKey: ['document', id], queryFn: () => apiClient.documents.get(id as string) });
+  const getSummary = async () => { setLoading(true); try { const res = await apiClient.documents.summary(id as string); setSummary(res.summary); } finally { setLoading(false); } };
+  if (!doc) return <div>Loading...</div>;
+  return (<div className="space-y-6"><h1 className="text-2xl font-bold">{doc.original_filename}</h1><div className="grid gap-6 md:grid-cols-2"><Card><CardHeader><CardTitle>Metadata</CardTitle></CardHeader><CardContent><div className="space-y-2 text-sm"><p><strong>Status:</strong> {doc.status}</p><p><strong>Pages:</strong> {doc.page_count}</p><p><strong>Chunks:</strong> {doc.chunk_count}</p></div><div className="mt-4"><Button onClick={getSummary} disabled={loading}>{loading ? 'Summarizing...' : 'Generate Summary'}</Button></div></CardContent></Card>{summary && <Card><CardHeader><CardTitle>Summary</CardTitle></CardHeader><CardContent><p className="text-sm whitespace-pre-wrap">{summary}</p></CardContent></Card>}</div></div>);
+}

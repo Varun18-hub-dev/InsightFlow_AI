@@ -1,0 +1,16 @@
+{
+  "ListenerArn": "arn:aws:elasticloadbalancing:${AWS_REGION}:${AWS_ACCOUNT_ID}:listener/app/InsightFlow-ALB/...",
+  "Priority": 10,
+  "Conditions": [
+    {
+      "Field": "host-header",
+      "Values": ["api.insightflow.ai"]
+    }
+  ],
+  "Actions": [
+    {
+      "Type": "forward",
+      "TargetGroupArn": "arn:aws:elasticloadbalancing:${AWS_REGION}:${AWS_ACCOUNT_ID}:targetgroup/InsightFlow-Backend-TG/..."
+    }
+  ]
+}
