@@ -50,16 +50,17 @@ class MeanReciprocalRank(BaseMetric):
     def description(self) -> str:
         return "Multiplicative inverse of the rank of the first correct answer."
 
-    def compute(self, retrieved_ids: list[str], relevant_ids: list[str]) -> MetricResult:
+    def compute(self, retrieved_ids: list[str], relevant_ids: list[str], k: int | None = None) -> MetricResult:
         if not relevant_ids or not retrieved_ids:
-            return MetricResult(self.name, 0.0, self.description)
+            return MetricResult(self.name, 0.0, self.description, {"k": k} if k is not None else None)
 
         relevant_set = set(relevant_ids)
-        for rank, doc_id in enumerate(retrieved_ids, 1):
+        ids_to_check = retrieved_ids[:k] if k is not None else retrieved_ids
+        for rank, doc_id in enumerate(ids_to_check, 1):
             if doc_id in relevant_set:
-                return MetricResult(self.name, 1.0 / rank, self.description)
+                return MetricResult(self.name, 1.0 / rank, self.description, {"k": k} if k is not None else None)
 
-        return MetricResult(self.name, 0.0, self.description)
+        return MetricResult(self.name, 0.0, self.description, {"k": k} if k is not None else None)
 
 class HitRate(BaseMetric):
     @property
@@ -70,8 +71,9 @@ class HitRate(BaseMetric):
     def description(self) -> str:
         return "Binary metric indicating if at least one relevant document was retrieved."
 
-    def compute(self, retrieved_ids: list[str], relevant_ids: list[str]) -> MetricResult:
+    def compute(self, retrieved_ids: list[str], relevant_ids: list[str], k: int | None = None) -> MetricResult:
         relevant_set = set(relevant_ids)
-        hits = any(doc_id in relevant_set for doc_id in retrieved_ids)
+        ids_to_check = retrieved_ids[:k] if k is not None else retrieved_ids
+        hits = any(doc_id in relevant_set for doc_id in ids_to_check)
 
-        return MetricResult(self.name, 1.0 if hits else 0.0, self.description)
+        return MetricResult(self.name, 1.0 if hits else 0.0, self.description, {"k": k} if k is not None else None)

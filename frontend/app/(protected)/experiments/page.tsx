@@ -547,8 +547,13 @@ export default function ExperimentsPage() {
                             className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5"
                           />
                         </td>
-                        <td className="px-4 py-3 font-semibold text-gray-900 truncate max-w-xs">
-                          {e.name}
+                        <td className="px-4 py-3 font-semibold text-gray-900 max-w-xs">
+                          <div className="truncate">{e.name}</div>
+                          {e.status === "failed" && (e.error_message || e.results?.error) && (
+                            <div className="text-[11px] font-normal text-red-600 truncate mt-0.5" title={e.error_message || e.results?.error}>
+                              Reason: {e.error_message || e.results?.error}
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3">{getStatusBadge(e.status)}</td>
                         <td className="px-4 py-3 text-gray-500 whitespace-nowrap">

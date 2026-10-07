@@ -121,40 +121,9 @@ async def _run_experiment_task(run_id: str, user_id: str):
                 dataset = json.load(f)
 
             # Import metrics
-            try:
-                from app.evaluation.metrics.generation_metrics import (
-                    AnswerRelevanceMetric,
-                    FaithfulnessMetric,
-                )
-                from app.evaluation.metrics.retrieval_metrics import (
-                    HitRate,
-                    MeanReciprocalRank,
-                    RecallAtK,
-                )
-                recall_metric = RecallAtK()
-                hit_rate = HitRate()
-                mrr_metric = MeanReciprocalRank()
-                faithfulness = FaithfulnessMetric()
-                relevance = AnswerRelevanceMetric()
-            except ImportError:
-                try:
-                    from evaluation.metrics.generation_metrics import (
-                        AnswerRelevanceMetric,
-                        FaithfulnessMetric,
-                    )
-                    from evaluation.metrics.retrieval_metrics import (
-                        HitRate,
-                        MeanReciprocalRank,
-                        RecallAtK,
-                    )
-                    recall_metric = RecallAtK()
-                    hit_rate = HitRate()
-                    mrr_metric = MeanReciprocalRank()
-                    faithfulness = FaithfulnessMetric()
-                    relevance = AnswerRelevanceMetric()
-                except ImportError:
-                    recall_metric = hit_rate = mrr_metric = faithfulness = relevance = None
+            from app.evaluation.eval_service import EvaluationMetricsSuite
 
+            suite = EvaluationMetricsSuite()
             config = run.config or {}
             top_k_retrieval = config.get("top_k_retrieval", settings.TOP_K_RETRIEVAL)
             top_k_rerank = config.get("top_k_rerank", settings.TOP_K_RERANK)
@@ -165,12 +134,7 @@ async def _run_experiment_task(run_id: str, user_id: str):
             provider = LLMProviderFactory.get_provider()
 
             per_question = []
-            recall_scores = []
-            hit_scores = []
-            mrr_scores = []
-            faithfulness_scores = []
-            relevance_scores = []
-
+            question_scores = []
             start = time.time()
 
             # Benchmark up to 5 questions
@@ -207,37 +171,26 @@ async def _run_experiment_task(run_id: str, user_id: str):
                     {"role": "user", "content": answer_prompt},
                 ])
 
-                # 4. Metric computation
-                if recall_metric:
-                    recall_scores.append(recall_metric.compute(retrieved_sources, expected, k=5))
-                if hit_rate:
-                    hit_scores.append(hit_rate.compute(retrieved_sources, expected, k=5))
-                if mrr_metric:
-                    mrr_scores.append(mrr_metric.compute(retrieved_sources, expected))
-                if faithfulness:
-                    faithfulness_scores.append(faithfulness.compute(answer, context))
-                if relevance:
-                    relevance_scores.append(relevance.compute(q, answer))
+                # 4. Metric computation via canonical suite
+                numeric_scores, _detailed = suite.evaluate_qa_item(
+                    question=q,
+                    expected_sources=expected,
+                    retrieved_sources=retrieved_sources,
+                    answer=answer,
+                    context=context,
+                )
+                question_scores.append(numeric_scores)
 
                 per_question.append({
                     "question": q,
                     "answer": answer[:200],
                     "sources": retrieved_sources,
                     "confidence": 0.85 if retrieved_sources else 0.2,
+                    "metrics": numeric_scores,
                 })
 
-            def _compute_avg(lst: list[float]) -> float:
-                return round(sum(lst) / len(lst), 4) if lst else 0.0
-
-            metrics = {
-                "recall_at_5": _compute_avg(recall_scores),
-                "hit_rate_at_5": _compute_avg(hit_scores),
-                "mrr": _compute_avg(mrr_scores),
-                "faithfulness": _compute_avg(faithfulness_scores),
-                "answer_relevance": _compute_avg(relevance_scores),
-                "questions_evaluated": len(per_question),
-                "total_latency_seconds": round(time.time() - start, 2),
-            }
+            total_latency = time.time() - start
+            metrics = suite.aggregate_batch(question_scores, total_latency)
 
             # Optional MLflow tracking (silently no-ops if offline)
             mlflow_run_id = None

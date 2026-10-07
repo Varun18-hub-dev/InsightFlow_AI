@@ -119,48 +119,11 @@ async def _run_evaluation_task(run_id: str, user_id: str):
             per_question = []
             start = time.time()
 
-            # Import evaluation modules
-            try:
-                from app.evaluation.metrics.generation_metrics import (
-                    AnswerRelevanceMetric,
-                    FaithfulnessMetric,
-                )
-                from app.evaluation.metrics.retrieval_metrics import (
-                    HitRate,
-                    MeanReciprocalRank,
-                    RecallAtK,
-                )
-                recall_metric = RecallAtK()
-                hit_rate = HitRate()
-                mrr_metric = MeanReciprocalRank()
-                faithfulness = FaithfulnessMetric()
-                relevance = AnswerRelevanceMetric()
-            except ImportError:
-                try:
-                    from evaluation.metrics.generation_metrics import (
-                        AnswerRelevanceMetric,
-                        FaithfulnessMetric,
-                    )
-                    from evaluation.metrics.retrieval_metrics import (
-                        HitRate,
-                        MeanReciprocalRank,
-                        RecallAtK,
-                    )
-                    recall_metric = RecallAtK()
-                    hit_rate = HitRate()
-                    mrr_metric = MeanReciprocalRank()
-                    faithfulness = FaithfulnessMetric()
-                    relevance = AnswerRelevanceMetric()
-                except ImportError:
-                    recall_metric = hit_rate = mrr_metric = faithfulness = relevance = None
-
             from app.agents.graph import run_graph
+            from app.evaluation.eval_service import EvaluationMetricsSuite
 
-            recall_scores = []
-            hit_scores = []
-            mrr_scores = []
-            faithfulness_scores = []
-            relevance_scores = []
+            suite = EvaluationMetricsSuite()
+            question_scores = []
 
             for item in dataset[:5]:  # 5 questions for demo speed
                 try:
@@ -172,43 +135,29 @@ async def _run_evaluation_task(run_id: str, user_id: str):
                     answer = state.get("answer", "")
                     retrieved_sources = [s.get("document", "") for s in state.get("sources", [])]
                     expected = item.get("expected_sources", [])
-
-                    # Retrieval metrics
-                    if recall_metric:
-                        recall_scores.append(recall_metric.compute(retrieved_sources, expected, k=5))
-                    if hit_rate:
-                        hit_scores.append(hit_rate.compute(retrieved_sources, expected, k=5))
-                    if mrr_metric:
-                        mrr_scores.append(mrr_metric.compute(retrieved_sources, expected))
-
-                    # Generation metrics
                     context = state.get("context", "")
-                    if faithfulness:
-                        faithfulness_scores.append(faithfulness.compute(answer, context))
-                    if relevance:
-                        relevance_scores.append(relevance.compute(item["question"], answer))
+
+                    numeric_scores, _detailed = suite.evaluate_qa_item(
+                        question=item["question"],
+                        expected_sources=expected,
+                        retrieved_sources=retrieved_sources,
+                        answer=answer,
+                        context=context,
+                    )
+                    question_scores.append(numeric_scores)
 
                     per_question.append({
                         "question": item["question"],
                         "answer": answer[:200],
                         "sources": retrieved_sources,
                         "confidence": state.get("confidence", 0),
+                        "metrics": numeric_scores,
                     })
                 except Exception as e:
                     logger.warning("eval_question_failed", q=item["question"][:50], error=str(e))
 
-            def _compute_avg(lst: list[float]) -> float:
-                return round(sum(lst) / len(lst), 4) if lst else 0.0
-
-            metrics = {
-                "recall_at_5": _compute_avg(recall_scores),
-                "hit_rate_at_5": _compute_avg(hit_scores),
-                "mrr": _compute_avg(mrr_scores),
-                "faithfulness": _compute_avg(faithfulness_scores),
-                "answer_relevance": _compute_avg(relevance_scores),
-                "questions_evaluated": len(per_question),
-                "total_latency_seconds": round(time.time() - start, 2),
-            }
+            total_latency = time.time() - start
+            metrics = suite.aggregate_batch(question_scores, total_latency)
 
             # Optional MLflow tracking
             mlflow_run_id = None

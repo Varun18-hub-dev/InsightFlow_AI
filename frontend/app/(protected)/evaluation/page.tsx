@@ -217,6 +217,11 @@ export default function EvaluationPage() {
                       </span>
                       {getStatusBadge(r.status)}
                     </div>
+                    {r.status === "failed" && r.results?.error && (
+                      <span className="text-[10px] text-red-600 truncate max-w-full" title={r.results.error}>
+                        {r.results.error}
+                      </span>
+                    )}
                     <div className="flex items-center justify-between text-[11px] text-gray-400">
                       <span>{formatDate(r.started_at)}</span>
                       <span>{formatTime(r.started_at)}</span>
