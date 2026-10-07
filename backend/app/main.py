@@ -9,6 +9,7 @@ from app.api import auth, chat, documents, evaluations, experiments, feedback, h
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.middleware import RequestIDMiddleware, TimingMiddleware
+from app.core.prompt_manager import validate_prompts_on_startup
 from app.core.tracing import setup_langsmith
 from app.db.base import init_db
 from app.services.mlflow_service import get_mlflow_service
@@ -20,6 +21,7 @@ logger = structlog.get_logger()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    validate_prompts_on_startup()
     await init_db()
     setup_langsmith()
     if settings.MLFLOW_TRACKING_URI:
