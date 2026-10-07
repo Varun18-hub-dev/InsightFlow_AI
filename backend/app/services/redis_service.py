@@ -27,7 +27,11 @@ class RedisService:
                 self._available = True
                 logger.info("redis_connected", url=self.url)
             except Exception as e:
-                logger.warning("redis_unavailable", error=str(e))
+                logger.warning(
+                    "redis_unavailable",
+                    error=str(e),
+                    error_type=type(e).__name__,
+                )
                 self._available = False
         return self._client
 
