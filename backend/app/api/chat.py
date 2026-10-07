@@ -253,7 +253,14 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
                     first_token_logged = True
 
                 full_answer += token
-                yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
+                token_payload = json.dumps({"type": "token", "content": token})
+                logger.info(
+                    "sse_token_yield",
+                    event_type="token",
+                    token_index=token_count,
+                    content_length=len(token),
+                )
+                yield f"data: {token_payload}\n\n"
 
             llm_stream_elapsed = round(time.time() - llm_stream_start, 3)
             logger.info(
@@ -265,8 +272,22 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
                 elapsed_seconds=llm_stream_elapsed,
             )
 
-            yield f"data: {json.dumps({'type': 'sources', 'sources': sources, 'message_id': message_id})}\n\n"
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            sources_payload = json.dumps({"type": "sources", "sources": sources, "message_id": message_id})
+            logger.info(
+                "sse_sources_yield",
+                event_type="sources",
+                sources_count=len(sources),
+                content_length=len(sources_payload),
+            )
+            yield f"data: {sources_payload}\n\n"
+
+            done_payload = json.dumps({"type": "done"})
+            logger.info(
+                "sse_done_yield",
+                event_type="done",
+                content_length=len(done_payload),
+            )
+            yield f"data: {done_payload}\n\n"
 
         except Exception as e:
             gen_elapsed = round(time.time() - gen_start_time, 3)
@@ -285,7 +306,13 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
                 error_type=type(e).__name__,
                 elapsed_seconds=gen_elapsed,
             )
-            yield f"data: {json.dumps({'type': 'error', 'content': user_msg, 'details': err_str})}\n\n"
+            error_payload = json.dumps({"type": "error", "content": user_msg, "details": err_str})
+            logger.info(
+                "sse_error_yield",
+                event_type="error",
+                content_length=len(error_payload),
+            )
+            yield f"data: {error_payload}\n\n"
         finally:
             try:
                 # Reload DB session to avoid stale state
@@ -307,7 +334,12 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
     return StreamingResponse(
         generate(),
         media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        headers={
+            "Content-Type": "text/event-stream; charset=utf-8",
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
     )
 
 

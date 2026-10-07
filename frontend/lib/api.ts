@@ -73,7 +73,8 @@ export const apiClient = {
       api.post<ChatResponse>('/api/chat', { query, conversation_id }).then((r) => r.data),
     stream: (query: string, conversation_id?: string): EventSource => {
       const token = useAuthStore.getState().token;
-      const url = new URL(`${api.defaults.baseURL}/api/chat/stream`);
+      const base = (api.defaults.baseURL || '').replace(/\/+$/, '');
+      const url = new URL(`${base}/api/chat/stream`);
       if (token) url.searchParams.append('token', token);
       url.searchParams.append('query', query);
       if (conversation_id) url.searchParams.append('conversation_id', conversation_id);
