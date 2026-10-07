@@ -680,7 +680,7 @@ export default function ChatPage() {
                                       Retrieved Passage (Chunk: {s.chunk_id.slice(0, 8)}...)
                                     </div>
                                     <p className="whitespace-pre-wrap leading-relaxed">
-                                      "{s.snippet}"
+                                      &ldquo;{s.snippet}&rdquo;
                                     </p>
                                   </div>
                                 )}

@@ -112,7 +112,7 @@ export default function ExperimentsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-xs text-gray-600">
-              <p leading-relaxed>
+              <p className="leading-relaxed">
                 When MLflow is active, benchmark evaluations logged from the <strong>Evaluation</strong> tab automatically push hyperparameter runs to the MLflow tracking registry:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -147,10 +147,10 @@ export default function ExperimentsPage() {
           {/* Left Column: Experiments List */}
           <div className="lg:col-span-1 space-y-3">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-1">
-              Registered Experiments ({experiments.length})
+              Registered Experiments ({experiments?.length || 0})
             </h3>
             <div className="space-y-2">
-              {experiments.map((exp) => {
+              {experiments?.map((exp) => {
                 const isSelected = activeExpName === exp.name;
                 return (
                   <button

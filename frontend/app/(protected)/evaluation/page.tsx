@@ -155,7 +155,7 @@ export default function EvaluationPage() {
             <div className="space-y-1.5 max-w-md">
               <h3 className="text-base font-semibold text-gray-900">No Evaluation Runs Executed Yet</h3>
               <p className="text-xs text-gray-500 leading-relaxed">
-                Click "Run Benchmark" above to execute real evaluation questions through the hybrid retrieval and reranking pipeline. Results are validated against expected ground truth citations.
+                Click &quot;Run Benchmark&quot; above to execute real evaluation questions through the hybrid retrieval and reranking pipeline. Results are validated against expected ground truth citations.
               </p>
             </div>
             <Button
