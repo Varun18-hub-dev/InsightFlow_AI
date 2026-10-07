@@ -1,8 +1,6 @@
 """Integration tests for document ingestion pipeline."""
 import os
 import tempfile
-import pytest
-from pathlib import Path
 
 
 def test_text_extractor_reads_file():
@@ -42,9 +40,9 @@ def test_chunker_produces_metadata():
 
 def test_end_to_end_txt_pipeline():
     """Full pipeline: extract → clean → chunk → metadata."""
-    from app.ingestion.extractors import TextExtractor
-    from app.ingestion.cleaner import TextCleaner
     from app.ingestion.chunker import DocumentChunker
+    from app.ingestion.cleaner import TextCleaner
+    from app.ingestion.extractors import TextExtractor
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
         f.write("Enterprise AI Platform InsightFlow " * 60)
@@ -69,8 +67,9 @@ def test_end_to_end_txt_pipeline():
 
 
 def test_metadata_enricher():
-    from app.ingestion.metadata_enricher import MetadataEnricher
     import uuid
+
+    from app.ingestion.metadata_enricher import MetadataEnricher
 
     enricher = MetadataEnricher()
     chunks = [

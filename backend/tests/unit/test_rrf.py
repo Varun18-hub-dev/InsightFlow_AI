@@ -1,5 +1,4 @@
 """Unit tests for RRF fusion algorithm."""
-import pytest
 from app.retrieval.base_retriever import RetrievedChunk
 from app.retrieval.rrf_fusion import rrf_fusion
 

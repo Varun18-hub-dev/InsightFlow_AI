@@ -16,11 +16,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+import app.api.deps as api_deps
+import app.db.base as db_base
 from app.db.models import User
 from app.main import app
-import app.db.base as db_base
-import app.api.deps as api_deps
-
 
 # ---------------------------------------------------------------------------
 # Fake user (stable UUID used across tests)

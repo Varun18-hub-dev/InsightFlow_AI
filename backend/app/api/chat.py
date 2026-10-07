@@ -1,6 +1,7 @@
 import json
 import time
 import uuid
+from datetime import datetime
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -51,25 +52,34 @@ async def chat(
 
     # Get or create conversation
     conv_id = request.conversation_id
+    conv_uuid: uuid.UUID | None = None
     if conv_id:
+        try:
+            conv_uuid = uuid.UUID(conv_id) if isinstance(conv_id, str) else conv_id
+        except (ValueError, TypeError):
+            conv_uuid = None
+
+    if conv_uuid:
         stmt = select(Conversation).where(
-            Conversation.id == conv_id,
-            Conversation.user_id == current_user.id
+            Conversation.id == conv_uuid,
+            Conversation.user_id == current_user.id,
         )
         result = await db.execute(stmt)
         conv = result.scalar_one_or_none()
         if not conv:
-            conv_id = None
+            conv_uuid = None
 
-    if not conv_id:
+    if not conv_uuid:
         conv = Conversation(user_id=current_user.id, title=request.query[:50])
         db.add(conv)
         await db.flush()
-        conv_id = str(conv.id)
+        conv_uuid = conv.id
+
+    conv_id = str(conv_uuid)
 
     # Save user message
     user_msg = Message(
-        conversation_id=conv_id,
+        conversation_id=conv_uuid,
         user_id=current_user.id,
         role="user",
         content=request.query,
@@ -95,14 +105,15 @@ async def chat(
 
     # Save assistant message
     asst_msg = Message(
-        conversation_id=conv_id,
+        conversation_id=conv_uuid,
         user_id=current_user.id,
         role="assistant",
         content=answer,
         sources=sources,
-        metadata=state.get("metadata") or {},
+        msg_metadata=state.get("metadata") or {},
     )
     db.add(asst_msg)
+    conv.updated_at = datetime.utcnow()
     await db.commit()
 
     response = ChatResponse(
@@ -137,25 +148,34 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
 
     # Get or create conversation with user_id authorization
     conv_id = conversation_id
+    conv_uuid: uuid.UUID | None = None
     if conv_id:
+        try:
+            conv_uuid = uuid.UUID(conv_id) if isinstance(conv_id, str) else conv_id
+        except (ValueError, TypeError):
+            conv_uuid = None
+
+    if conv_uuid:
         stmt = select(Conversation).where(
-            Conversation.id == conv_id,
+            Conversation.id == conv_uuid,
             Conversation.user_id == current_user.id,
         )
         result = await db.execute(stmt)
         conv = result.scalar_one_or_none()
         if not conv:
-            conv_id = None
+            conv_uuid = None
 
-    if not conv_id:
+    if not conv_uuid:
         conv = Conversation(user_id=current_user.id, title=query[:50])
         db.add(conv)
         await db.flush()
-        conv_id = str(conv.id)
+        conv_uuid = conv.id
+
+    conv_id = str(conv_uuid)
 
     # Save user message
     user_msg = Message(
-        conversation_id=conv_id,
+        conversation_id=conv_uuid,
         user_id=current_user.id,
         role="user",
         content=query,
@@ -343,10 +363,11 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
             try:
                 # Reload DB session to avoid stale state
                 from app.db.base import AsyncSessionLocal
+                msg_uuid = uuid.UUID(message_id) if isinstance(message_id, str) else message_id
                 async with AsyncSessionLocal() as save_db:
                     asst_msg = Message(
-                        id=message_id,
-                        conversation_id=conv_id,
+                        id=msg_uuid,
+                        conversation_id=conv_uuid,
                         user_id=current_user.id,
                         role="assistant",
                         content=full_answer,
@@ -354,7 +375,11 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
                         msg_metadata=transparency_meta if "transparency_meta" in locals() else None,
                     )
                     save_db.add(asst_msg)
+                    conv_update = await save_db.get(Conversation, conv_uuid)
+                    if conv_update:
+                        conv_update.updated_at = datetime.utcnow()
                     await save_db.commit()
+                    logger.info("stream_save_success", conv_id=str(conv_uuid), message_id=str(msg_uuid))
             except Exception as e:
                 logger.error("stream_save_failed", error=str(e))
 

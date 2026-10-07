@@ -1,7 +1,8 @@
 """Unit tests for LightweightReranker."""
 import pytest
-from app.retrieval.base_retriever import RetrievedChunk
+
 from app.reranking.lightweight_reranker import LightweightReranker
+from app.retrieval.base_retriever import RetrievedChunk
 
 
 def make_chunk(id: str, content: str, score: float = 0.5) -> RetrievedChunk:

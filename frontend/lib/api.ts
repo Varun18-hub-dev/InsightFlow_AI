@@ -8,7 +8,8 @@ import {
   Conversation,
   ConversationDetail,
   EvaluationRun,
-  Experiment,
+  ExperimentRun,
+  ExperimentRunRequest,
   HealthStatus,
   ComparisonResult,
   Source
@@ -101,9 +102,12 @@ export const apiClient = {
       api.post<EvaluationRun>('/api/evaluations/run', { name }).then((r) => r.data)
   },
   experiments: {
-    list: async (): Promise<Experiment[]> => api.get<Experiment[]>('/api/experiments').then((r) => r.data),
-    runs: async (experimentName: string): Promise<any[]> =>
-      api.get<any[]>(`/api/experiments/${encodeURIComponent(experimentName)}/runs`).then((r) => r.data)
+    list: async (): Promise<ExperimentRun[]> => api.get<ExperimentRun[]>('/api/experiments').then((r) => r.data),
+    get: async (id: string): Promise<ExperimentRun> => api.get<ExperimentRun>(`/api/experiments/${id}`).then((r) => r.data),
+    run: async (req: ExperimentRunRequest): Promise<ExperimentRun> =>
+      api.post<ExperimentRun>('/api/experiments/run', req).then((r) => r.data),
+    delete: async (id: string): Promise<{ message: string }> =>
+      api.delete<{ message: string }>(`/api/experiments/${id}`).then((r) => r.data)
   },
   health: {
     check: async (): Promise<HealthStatus> => api.get<HealthStatus>('/api/health').then((r) => r.data)

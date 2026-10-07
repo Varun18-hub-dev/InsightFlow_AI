@@ -1,21 +1,25 @@
 import json
 import os
 import time
+import uuid
+from datetime import datetime
 from pathlib import Path
 
 import structlog
-from fastapi import APIRouter, BackgroundTasks, Body, Depends
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.config import settings
-from app.db.base import get_db
+from app.db.base import AsyncSessionLocal, get_db
 from app.db.models import EvaluationRun, User
+from app.db.schemas import EvaluationRunResponse
 from app.services.mlflow_service import get_mlflow_service
 
 logger = structlog.get_logger()
 router = APIRouter()
+
 
 def _find_eval_dataset_path() -> Path:
     env_path = os.getenv("EVAL_DATASET_PATH")
@@ -23,52 +27,75 @@ def _find_eval_dataset_path() -> Path:
         return Path(env_path)
     curr = Path(__file__).resolve()
     candidates = [
+        curr.parent.parent / "evaluation" / "datasets" / "sample_eval.json",
+        Path("/app/app/evaluation/datasets/sample_eval.json"),
         Path("/app/evaluation/datasets/sample_eval.json"),
+        Path.cwd() / "app" / "evaluation" / "datasets" / "sample_eval.json",
         Path.cwd() / "evaluation" / "datasets" / "sample_eval.json",
         Path.cwd().parent / "evaluation" / "datasets" / "sample_eval.json",
     ]
-    for n in (3, 2, 4):
+    for n in (1, 2, 3, 4):
         if len(curr.parents) > n:
             candidates.append(curr.parents[n] / "evaluation" / "datasets" / "sample_eval.json")
+            candidates.append(curr.parents[n] / "app" / "evaluation" / "datasets" / "sample_eval.json")
     for c in candidates:
         if c.exists():
             return c
-    return Path("/app/evaluation/datasets/sample_eval.json")
+    return curr.parent.parent / "evaluation" / "datasets" / "sample_eval.json"
+
 
 EVAL_DATASET_PATH = _find_eval_dataset_path()
 
 
-@router.get("/evaluations")
+@router.get("/evaluations", response_model=list[EvaluationRunResponse])
 async def list_evaluations(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    stmt = select(EvaluationRun).where(EvaluationRun.user_id == current_user.id).order_by(EvaluationRun.started_at.desc())
+    """List all evaluation benchmark runs for the current authenticated user."""
+    stmt = (
+        select(EvaluationRun)
+        .where(EvaluationRun.user_id == current_user.id)
+        .order_by(EvaluationRun.started_at.desc())
+    )
     result = await db.execute(stmt)
     runs = result.scalars().all()
-    return [
-        {
-            "id": str(r.id),
-            "name": r.name,
-            "status": r.status,
-            "config": r.config,
-            "results": r.results,
-            "mlflow_run_id": r.mlflow_run_id,
-            "started_at": str(r.started_at),
-            "completed_at": str(r.completed_at) if r.completed_at else None,
-        }
-        for r in runs
-    ]
+    return runs
+
+
+@router.get("/evaluations/{eval_id}", response_model=EvaluationRunResponse)
+async def get_evaluation(
+    eval_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get single evaluation run."""
+    try:
+        e_uuid = uuid.UUID(eval_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid evaluation ID") from None
+
+    stmt = select(EvaluationRun).where(
+        EvaluationRun.id == e_uuid,
+        EvaluationRun.user_id == current_user.id,
+    )
+    result = await db.execute(stmt)
+    run = result.scalar_one_or_none()
+    if not run:
+        raise HTTPException(status_code=404, detail="Evaluation run not found")
+    return run
 
 
 async def _run_evaluation_task(run_id: str, user_id: str):
     """Background evaluation task."""
-    from datetime import datetime
-
-    from app.db.base import AsyncSessionLocal
+    run_uuid = uuid.UUID(run_id)
+    user_uuid = uuid.UUID(user_id)
 
     async with AsyncSessionLocal() as db:
-        stmt = select(EvaluationRun).where(EvaluationRun.id == run_id)
+        stmt = select(EvaluationRun).where(
+            EvaluationRun.id == run_uuid,
+            EvaluationRun.user_id == user_uuid,
+        )
         result = await db.execute(stmt)
         run = result.scalar_one_or_none()
         if not run:
@@ -78,13 +105,15 @@ async def _run_evaluation_task(run_id: str, user_id: str):
         await db.commit()
 
         try:
-            if not EVAL_DATASET_PATH.exists():
+            dataset_path = _find_eval_dataset_path()
+            if not dataset_path.exists():
                 run.status = "failed"
-                run.results = {"error": "Evaluation dataset not found at " + str(EVAL_DATASET_PATH)}
+                run.results = {"error": f"Evaluation dataset not found at {dataset_path}"}
+                run.completed_at = datetime.utcnow()
                 await db.commit()
                 return
 
-            with open(EVAL_DATASET_PATH) as f:
+            with open(dataset_path) as f:
                 dataset = json.load(f)
 
             per_question = []
@@ -92,28 +121,38 @@ async def _run_evaluation_task(run_id: str, user_id: str):
 
             # Import evaluation modules
             try:
-                import sys
-                root_candidate = EVAL_DATASET_PATH.parent.parent.parent
-                if str(root_candidate) not in sys.path:
-                    sys.path.insert(0, str(root_candidate))
-
-                from evaluation.metrics.generation_metrics import (
+                from app.evaluation.metrics.generation_metrics import (
                     AnswerRelevanceMetric,
                     FaithfulnessMetric,
                 )
-                from evaluation.metrics.retrieval_metrics import (
+                from app.evaluation.metrics.retrieval_metrics import (
                     HitRate,
                     MeanReciprocalRank,
                     RecallAtK,
                 )
-
                 recall_metric = RecallAtK()
                 hit_rate = HitRate()
                 mrr_metric = MeanReciprocalRank()
                 faithfulness = FaithfulnessMetric()
                 relevance = AnswerRelevanceMetric()
             except ImportError:
-                recall_metric = hit_rate = mrr_metric = faithfulness = relevance = None
+                try:
+                    from evaluation.metrics.generation_metrics import (
+                        AnswerRelevanceMetric,
+                        FaithfulnessMetric,
+                    )
+                    from evaluation.metrics.retrieval_metrics import (
+                        HitRate,
+                        MeanReciprocalRank,
+                        RecallAtK,
+                    )
+                    recall_metric = RecallAtK()
+                    hit_rate = HitRate()
+                    mrr_metric = MeanReciprocalRank()
+                    faithfulness = FaithfulnessMetric()
+                    relevance = AnswerRelevanceMetric()
+                except ImportError:
+                    recall_metric = hit_rate = mrr_metric = faithfulness = relevance = None
 
             from app.agents.graph import run_graph
 
@@ -127,7 +166,7 @@ async def _run_evaluation_task(run_id: str, user_id: str):
                 try:
                     state = await run_graph(
                         query=item["question"],
-                        user_id=user_id,
+                        user_id=str(user_uuid),
                         db=db,
                     )
                     answer = state.get("answer", "")
@@ -171,19 +210,23 @@ async def _run_evaluation_task(run_id: str, user_id: str):
                 "total_latency_seconds": round(time.time() - start, 2),
             }
 
-            # Log to MLflow
-            mlflow_svc = get_mlflow_service()
-            mlflow_run_id = await mlflow_svc.log_experiment_run(
-                experiment_name="insightflow-rag-evaluation",
-                params={
-                    "model": settings.LLM_PROVIDER,
-                    "chunk_size": settings.CHUNK_SIZE,
-                    "top_k": settings.TOP_K_RERANK,
-                    "reranker": settings.RERANKER_TYPE,
-                },
-                metrics=metrics,
-                tags={"run_name": run.name},
-            )
+            # Optional MLflow tracking
+            mlflow_run_id = None
+            try:
+                mlflow_svc = get_mlflow_service()
+                mlflow_run_id = await mlflow_svc.log_experiment_run(
+                    experiment_name="insightflow-rag-evaluation",
+                    params={
+                        "model": settings.LLM_PROVIDER,
+                        "chunk_size": settings.CHUNK_SIZE,
+                        "top_k": settings.TOP_K_RERANK,
+                        "reranker": settings.RERANKER_TYPE,
+                    },
+                    metrics=metrics,
+                    tags={"run_name": run.name},
+                )
+            except Exception:
+                pass
 
             run.status = "completed"
             run.results = {"metrics": metrics, "per_question": per_question}
@@ -196,16 +239,18 @@ async def _run_evaluation_task(run_id: str, user_id: str):
             logger.error("evaluation_failed", run_id=run_id, error=str(e))
             run.status = "failed"
             run.results = {"error": str(e)}
+            run.completed_at = datetime.utcnow()
             await db.commit()
 
 
-@router.post("/evaluations/run")
+@router.post("/evaluations/run", response_model=EvaluationRunResponse)
 async def run_evaluation(
     background_tasks: BackgroundTasks,
     request: dict = Body(default={}),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Trigger a new evaluation run."""
     run = EvaluationRun(
         user_id=current_user.id,
         name=request.get("name") or f"eval_{int(time.time())}",
@@ -223,4 +268,4 @@ async def run_evaluation(
 
     background_tasks.add_task(_run_evaluation_task, str(run.id), str(current_user.id))
     logger.info("evaluation_started", run_id=str(run.id))
-    return {"id": str(run.id), "name": run.name, "status": run.status}
+    return run

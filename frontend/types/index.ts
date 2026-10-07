@@ -55,6 +55,7 @@ export interface Conversation {
   title: string | null;
   created_at: string;
   updated_at: string;
+  message_count?: number;
 }
 
 export interface ConversationDetail {
@@ -80,6 +81,7 @@ export interface StreamEvent {
   conversation_id?: string;
   message_id?: string;
   metadata?: MessageMetadata;
+  details?: string;
 }
 
 export interface EvaluationRun {
@@ -91,6 +93,55 @@ export interface EvaluationRun {
   mlflow_run_id: string | null;
   started_at: string;
   completed_at: string | null;
+}
+
+export interface ExperimentRun {
+  id: string;
+  name: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | string;
+  config: {
+    chunk_size?: number;
+    chunk_overlap?: number;
+    top_k_retrieval?: number;
+    top_k_rerank?: number;
+    reranker_type?: string;
+    model?: string;
+    [key: string]: any;
+  };
+  results?: {
+    metrics?: {
+      recall_at_5?: number;
+      hit_rate_at_5?: number;
+      mrr?: number;
+      faithfulness?: number;
+      answer_relevance?: number;
+      total_latency_seconds?: number;
+      questions_evaluated?: number;
+      [key: string]: any;
+    };
+    per_question?: Array<{
+      question: string;
+      answer: string;
+      sources: string[];
+      confidence?: number;
+    }>;
+    error?: string;
+    [key: string]: any;
+  };
+  error_message?: string | null;
+  mlflow_run_id?: string | null;
+  created_at: string;
+  completed_at?: string | null;
+}
+
+export interface ExperimentRunRequest {
+  name?: string;
+  chunk_size?: number;
+  chunk_overlap?: number;
+  top_k_retrieval?: number;
+  top_k_rerank?: number;
+  reranker_type?: string;
+  model?: string;
 }
 
 export interface HealthStatus {

@@ -172,6 +172,32 @@ class EvaluationRunResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ─── Experiments ────────────────────────────────────────────────────────────
+
+class ExperimentRunRequest(BaseModel):
+    name: str | None = None
+    chunk_size: int = Field(default=800, ge=100, le=4000)
+    chunk_overlap: int = Field(default=150, ge=0, le=1000)
+    top_k_retrieval: int = Field(default=20, ge=1, le=100)
+    top_k_rerank: int = Field(default=6, ge=1, le=50)
+    reranker_type: str = Field(default="lightweight")
+    model: str = Field(default="gemini-flash-lite-latest")
+
+
+class ExperimentRunResponse(BaseModel):
+    id: UUID
+    name: str
+    status: str
+    config: dict[str, Any] | None = None
+    results: dict[str, Any] | None = None
+    error_message: str | None = None
+    mlflow_run_id: str | None = None
+    created_at: datetime
+    completed_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
 # ─── Health ──────────────────────────────────────────────────────────────────
 
 class HealthResponse(BaseModel):

@@ -3,19 +3,14 @@ Integration tests for Pinecone vector store service and fallbacks.
 Runs against real Pinecone index when PINECONE_API_KEY is configured.
 Skips cleanly when running in environments without Pinecone credentials.
 """
-import asyncio
-import os
 import time
 import uuid
+
 import pytest
 
-from app.core.config import settings
-from app.services.pinecone_service import (
-    PineconeService,
-    InMemoryVectorStore,
-    get_vector_store
-)
 import app.services.pinecone_service as ps_mod
+from app.core.config import settings
+from app.services.pinecone_service import InMemoryVectorStore, PineconeService, get_vector_store
 
 HAS_PINECONE = bool(settings.PINECONE_API_KEY and settings.PINECONE_INDEX)
 pytestmark = pytest.mark.asyncio

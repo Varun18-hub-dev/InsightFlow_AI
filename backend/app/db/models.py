@@ -101,6 +101,19 @@ class EvaluationRun(Base):
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
 
+class ExperimentRun(Base):
+    __tablename__ = "experiment_runs"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), index=True)
+    name = Column(String, nullable=False)
+    status = Column(String, default="pending")  # pending, running, completed, failed
+    config = Column(JSON, nullable=False)
+    results = Column(JSON, nullable=True)
+    error_message = Column(Text, nullable=True)
+    mlflow_run_id = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+
 class UserFeedback(Base):
     __tablename__ = "user_feedback"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

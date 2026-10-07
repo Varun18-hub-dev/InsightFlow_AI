@@ -5,7 +5,8 @@ from .cross_encoder_reranker import CrossEncoderReranker
 from .lightweight_reranker import LightweightReranker
 
 
-def get_reranker() -> BaseReranker:
-    if settings.RERANKER_TYPE == "cross_encoder":
+def get_reranker(reranker_type: str | None = None) -> BaseReranker:
+    rtype = reranker_type or settings.RERANKER_TYPE
+    if rtype == "cross_encoder":
         return CrossEncoderReranker()
     return LightweightReranker()

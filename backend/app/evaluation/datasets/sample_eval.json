@@ -1,0 +1,107 @@
+[
+  {
+    "id": "eval_001",
+    "question": "What was the company revenue in Q4?",
+    "ground_truth": "The revenue information would depend on the uploaded document.",
+    "expected_sources": ["annual_report.pdf"],
+    "category": "financial"
+  },
+  {
+    "id": "eval_002",
+    "question": "Who is the CEO of the organization?",
+    "ground_truth": "The CEO is mentioned in the executive summary.",
+    "expected_sources": ["company_overview.docx"],
+    "category": "general"
+  },
+  {
+    "id": "eval_003",
+    "question": "What are the main risk factors mentioned?",
+    "ground_truth": "Market volatility and supply chain disruptions are the main risks.",
+    "expected_sources": ["risk_assessment_2023.pdf"],
+    "category": "risk"
+  },
+  {
+    "id": "eval_004",
+    "question": "When is the next product launch?",
+    "ground_truth": "The next product is scheduled for launch in Q3.",
+    "expected_sources": ["roadmap.pdf"],
+    "category": "product"
+  },
+  {
+    "id": "eval_005",
+    "question": "What is the employee turnover rate?",
+    "ground_truth": "The turnover rate decreased to 5% this year.",
+    "expected_sources": ["hr_metrics.csv"],
+    "category": "hr"
+  },
+  {
+    "id": "eval_006",
+    "question": "How does the pricing model work?",
+    "ground_truth": "It is a subscription-based model with tiered pricing.",
+    "expected_sources": ["pricing_strategy.pdf"],
+    "category": "sales"
+  },
+  {
+    "id": "eval_007",
+    "question": "What are the compliance requirements for GDPR?",
+    "ground_truth": "Data localization and user consent are required.",
+    "expected_sources": ["compliance_guide.pdf"],
+    "category": "legal"
+  },
+  {
+    "id": "eval_008",
+    "question": "What is the marketing budget for next year?",
+    "ground_truth": "The budget has been increased by 15% to $2M.",
+    "expected_sources": ["budget_2024.xlsx"],
+    "category": "marketing"
+  },
+  {
+    "id": "eval_009",
+    "question": "Who are the primary competitors?",
+    "ground_truth": "Competitor A and Competitor B dominate the market.",
+    "expected_sources": ["market_analysis.pdf"],
+    "category": "strategy"
+  },
+  {
+    "id": "eval_010",
+    "question": "What were the key takeaways from the board meeting?",
+    "ground_truth": "Focus on international expansion and R&D investment.",
+    "expected_sources": ["board_minutes_jan.docx"],
+    "category": "leadership"
+  },
+  {
+    "id": "eval_011",
+    "question": "How is customer support performance measured?",
+    "ground_truth": "Using CSAT scores and average resolution time.",
+    "expected_sources": ["support_metrics.pdf"],
+    "category": "operations"
+  },
+  {
+    "id": "eval_012",
+    "question": "What is the tech stack for the new platform?",
+    "ground_truth": "It uses React, Node.js, and PostgreSQL.",
+    "expected_sources": ["architecture_spec.md"],
+    "category": "engineering"
+  },
+  {
+    "id": "eval_013",
+    "question": "What are the environmental sustainability goals?",
+    "ground_truth": "Achieve carbon neutrality by 2030.",
+    "expected_sources": ["esg_report.pdf"],
+    "category": "csr"
+  },
+  {
+    "id": "eval_014",
+    "question": "How many patents does the company hold?",
+    "ground_truth": "The company currently holds 45 active patents.",
+    "expected_sources": ["ip_portfolio.pdf"],
+    "category": "legal"
+  },
+  {
+    "id": "eval_015",
+    "question": "What is the policy for remote work?",
+    "ground_truth": "Employees can work remotely up to 3 days a week.",
+    "expected_sources": ["employee_handbook.pdf"],
+    "category": "hr"
+  }
+]

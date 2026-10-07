@@ -1,5 +1,4 @@
 """Unit tests for DocumentChunker."""
-import pytest
 from app.ingestion.chunker import DocumentChunker
 
 

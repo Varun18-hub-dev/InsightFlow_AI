@@ -1,5 +1,4 @@
 """Unit tests for rule-based intent classifier."""
-import pytest
 from app.agents.nodes.intent_classifier import _rule_based_classify
 
 

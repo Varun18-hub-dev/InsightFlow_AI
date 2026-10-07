@@ -1,6 +1,7 @@
 """Integration tests for Redis service (uses mocks — no live Redis required)."""
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 
 @pytest.mark.asyncio
