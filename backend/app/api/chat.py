@@ -302,9 +302,11 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
             logger.error(
                 "stream_error",
                 user_id=user_id,
+                exception_class=type(e).__name__,
+                sanitized_message=err_str,
+                elapsed_seconds=gen_elapsed,
                 error=err_str,
                 error_type=type(e).__name__,
-                elapsed_seconds=gen_elapsed,
             )
             error_payload = json.dumps({"type": "error", "content": user_msg, "details": err_str})
             logger.info(

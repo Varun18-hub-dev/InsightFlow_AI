@@ -32,7 +32,7 @@ class GeminiProvider(BaseLLMProvider):
         self.client = ChatGoogleGenerativeAI(
             model=self.model_name,
             google_api_key=self.api_key,
-            timeout=20.0,
+            timeout=60.0,
             max_retries=1,
         )
 
@@ -127,7 +127,7 @@ class GeminiProvider(BaseLLMProvider):
             model=self.model_name,
         )
 
-        STREAM_TIMEOUT_SECONDS = 30.0
+        STREAM_TIMEOUT_SECONDS = 60.0
         stream_iter = stream.__aiter__()
         chunk_count = 0
         stream_start = time.time()
@@ -146,14 +146,25 @@ class GeminiProvider(BaseLLMProvider):
             except TimeoutError as e:
                 logger.error(
                     "gemini_stream_timeout",
+                    timeout_type="chunk_timeout",
                     model=self.model_name,
-                    timeout_seconds=STREAM_TIMEOUT_SECONDS,
                     chunks_received=chunk_count,
                     elapsed_seconds=round(time.time() - stream_start, 3),
                 )
                 raise TimeoutError(
                     f"Gemini streaming timed out after {STREAM_TIMEOUT_SECONDS}s"
                 ) from e
+            except Exception as e:
+                err_str = str(e)
+                if "timeout" in err_str.lower() or "deadline" in err_str.lower():
+                    logger.error(
+                        "gemini_stream_timeout",
+                        timeout_type="client_timeout",
+                        model=self.model_name,
+                        chunks_received=chunk_count,
+                        elapsed_seconds=round(time.time() - stream_start, 3),
+                    )
+                raise
 
             chunk_count += 1
             text_part = self._extract_text(chunk.content) if chunk.content else ""
