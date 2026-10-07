@@ -15,7 +15,7 @@ services:
       - key: EMBEDDING_PROVIDER
         value: gemini
       - key: GEMINI_MODEL
-        value: gemini-flash-latest
+        value: gemini-flash-lite-latest
       - key: PINECONE_INDEX_NAME
         value: insightflow
       - key: PINECONE_ENVIRONMENT

@@ -1,8 +1,4 @@
-
 import os
-
-# Clean conflicting global keys from host environment so explicit GEMINI_API_KEY from .env is used
-os.environ.pop("GOOGLE_API_KEY", None)
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,6 +22,9 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
+    GOOGLE_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-flash-lite-latest"
+    GEMINI_MODEL_NAME: str = "gemini-flash-lite-latest"
     LLM_PROVIDER: str = "gemini"
     EMBEDDING_PROVIDER: str = "gemini"
 
@@ -57,6 +56,14 @@ class Settings(BaseSettings):
 
     def get_pinecone_index(self) -> str:
         return self.PINECONE_INDEX_NAME or self.PINECONE_INDEX or "insightflow"
+
+    def get_gemini_api_key(self) -> str:
+        return (
+            os.environ.get("GOOGLE_API_KEY", "")
+            or self.GOOGLE_API_KEY
+            or self.GEMINI_API_KEY
+            or os.environ.get("GEMINI_API_KEY", "")
+        )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

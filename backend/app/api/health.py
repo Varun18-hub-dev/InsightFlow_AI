@@ -76,3 +76,12 @@ async def health_check():
             status["mlflow"] = "unavailable"
 
     return status
+
+
+@router.get("/health/embedding-diagnostic")
+async def embedding_diagnostic():
+    """Temporary diagnostic for the production RAG pipeline testing Gemini embedding independently."""
+    from app.llm.gemini_provider import GeminiEmbeddingProvider
+
+    provider = GeminiEmbeddingProvider()
+    return await provider.run_diagnostic()

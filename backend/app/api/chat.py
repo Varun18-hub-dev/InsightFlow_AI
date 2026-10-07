@@ -71,6 +71,7 @@ async def chat(
     await db.flush()
 
     start = time.time()
+    logger.info("chat_started", user_id=user_id, query_len=len(request.query), conv_id=conv_id)
 
     # Run LangGraph orchestration
     state = await run_graph(
@@ -120,6 +121,13 @@ async def chat(
 async def _run_chat_stream(query: str, conversation_id: str | None, current_user: User, db: AsyncSession):
     user_id = str(current_user.id)
 
+    logger.info(
+        "stream_started",
+        user_id=user_id,
+        query_len=len(query),
+        conversation_id=conversation_id,
+    )
+
     # Get or create conversation with user_id authorization
     conv_id = conversation_id
     if conv_id:
@@ -153,19 +161,41 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
         full_answer = ""
         sources = []
         message_id = str(uuid.uuid4())
+        gen_start_time = time.time()
 
         try:
             from app.reranking.factory import get_reranker
             from app.retrieval.hybrid_retriever import HybridRetriever
 
+            # Retrieval stage
+            retrieval_start = time.time()
+            logger.info("retrieval_started", user_id=user_id, query_len=len(query))
             retriever = HybridRetriever(db)
             retrieved = await retriever.retrieve(
                 query=query,
                 filters={"user_id": user_id},
                 final_top_k=settings.TOP_K_RETRIEVAL,
             )
+            retrieval_elapsed = round(time.time() - retrieval_start, 3)
+            logger.info(
+                "retrieval_completed",
+                user_id=user_id,
+                retrieved_count=len(retrieved),
+                elapsed_seconds=retrieval_elapsed,
+            )
+
+            # Reranking stage
+            rerank_start = time.time()
+            logger.info("reranking_started", user_id=user_id, candidate_count=len(retrieved))
             reranker = get_reranker()
             reranked = await reranker.rerank(query, retrieved, top_k=settings.TOP_K_RERANK)
+            rerank_elapsed = round(time.time() - rerank_start, 3)
+            logger.info(
+                "reranking_completed",
+                user_id=user_id,
+                reranked_count=len(reranked),
+                elapsed_seconds=rerank_elapsed,
+            )
 
             context_parts = []
             for chunk in reranked:
@@ -184,20 +214,78 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
             system_prompt = prompt_manager.get_prompt("rag", "system")
             answer_prompt = prompt_manager.render("rag", "answer", context=context, question=query)
 
+            logger.info(
+                "prompt_loaded",
+                user_id=user_id,
+                system_prompt_len=len(system_prompt),
+                answer_prompt_len=len(answer_prompt),
+                context_chunks=len(context_parts),
+            )
+
             provider = LLMProviderFactory.get_provider()
+            model_name = provider.get_model_name() if hasattr(provider, "get_model_name") else "unknown"
+
+            llm_stream_start = time.time()
+            logger.info(
+                "llm_stream_started",
+                user_id=user_id,
+                model=model_name,
+                system_prompt_len=len(system_prompt),
+                answer_prompt_len=len(answer_prompt),
+            )
+
+            first_token_logged = False
+            token_count = 0
+
             async for token in provider.chat_stream([
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": answer_prompt},
             ]):
+                token_count += 1
+                if not first_token_logged:
+                    first_token_time = round(time.time() - llm_stream_start, 3)
+                    logger.info(
+                        "llm_first_token",
+                        user_id=user_id,
+                        model=model_name,
+                        time_to_first_token_seconds=first_token_time,
+                    )
+                    first_token_logged = True
+
                 full_answer += token
                 yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
+
+            llm_stream_elapsed = round(time.time() - llm_stream_start, 3)
+            logger.info(
+                "llm_stream_completed",
+                user_id=user_id,
+                model=model_name,
+                total_tokens=token_count,
+                answer_len=len(full_answer),
+                elapsed_seconds=llm_stream_elapsed,
+            )
 
             yield f"data: {json.dumps({'type': 'sources', 'sources': sources, 'message_id': message_id})}\n\n"
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
         except Exception as e:
-            logger.error("stream_error", error=str(e))
-            yield f"data: {json.dumps({'type': 'error', 'content': 'An error occurred during streaming'})}\n\n"
+            gen_elapsed = round(time.time() - gen_start_time, 3)
+            err_str = str(e)
+            if "503" in err_str or "high demand" in err_str.lower():
+                user_msg = "The AI model is temporarily experiencing high demand. Please retry in a few moments."
+            elif "timeout" in err_str.lower():
+                user_msg = "The AI request timed out. Please retry in a few moments."
+            else:
+                user_msg = "An error occurred during streaming."
+
+            logger.error(
+                "stream_error",
+                user_id=user_id,
+                error=err_str,
+                error_type=type(e).__name__,
+                elapsed_seconds=gen_elapsed,
+            )
+            yield f"data: {json.dumps({'type': 'error', 'content': user_msg, 'details': err_str})}\n\n"
         finally:
             try:
                 # Reload DB session to avoid stale state
