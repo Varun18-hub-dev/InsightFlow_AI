@@ -14,7 +14,14 @@ from app.core.config import settings
 from app.core.prompt_manager import prompt_manager
 from app.db.base import get_db
 from app.db.models import Conversation, Message, User
-from app.db.schemas import ChatRequest, ChatResponse
+from app.db.schemas import (
+    ChatRequest,
+    ChatResponse,
+    ConversationDetailResponse,
+    ConversationResponse,
+    ConversationUpdate,
+    MessageResponse,
+)
 from app.llm.factory import LLMProviderFactory
 from app.services.redis_service import get_redis_service
 
@@ -208,6 +215,7 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
                     "page": page,
                     "chunk_id": chunk.id,
                     "score": round(chunk.score, 4),
+                    "snippet": chunk.content.strip() if chunk.content else "",
                 })
 
             context = "\n\n---\n\n".join(context_parts) if context_parts else "No context available."
@@ -272,7 +280,23 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
                 elapsed_seconds=llm_stream_elapsed,
             )
 
-            sources_payload = json.dumps({"type": "sources", "sources": sources, "message_id": message_id})
+            transparency_meta = {
+                "intent": "Document QA",
+                "retrieved_count": len(retrieved),
+                "reranked_count": len(reranked),
+                "context_characters": sum(len(c) for c in context_parts),
+                "model": "Gemini Flash Lite",
+                "sources_count": len(sources),
+                "response_time_seconds": round(time.time() - gen_start_time, 2),
+                "generation_time_seconds": llm_stream_elapsed,
+            }
+            sources_payload = json.dumps({
+                "type": "sources",
+                "sources": sources,
+                "message_id": message_id,
+                "conversation_id": conv_id,
+                "metadata": transparency_meta,
+            })
             logger.info(
                 "sse_sources_yield",
                 event_type="sources",
@@ -281,7 +305,7 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
             )
             yield f"data: {sources_payload}\n\n"
 
-            done_payload = json.dumps({"type": "done"})
+            done_payload = json.dumps({"type": "done", "conversation_id": conv_id})
             logger.info(
                 "sse_done_yield",
                 event_type="done",
@@ -327,6 +351,7 @@ async def _run_chat_stream(query: str, conversation_id: str | None, current_user
                         role="assistant",
                         content=full_answer,
                         sources=sources,
+                        msg_metadata=transparency_meta if "transparency_meta" in locals() else None,
                     )
                     save_db.add(asst_msg)
                     await save_db.commit()
@@ -365,4 +390,124 @@ async def chat_stream_get(
     """Server-Sent Events streaming chat endpoint (GET for browser EventSource)."""
     user = await get_user_by_token(token, db)
     return await _run_chat_stream(query, conversation_id, user, db)
+
+
+@router.get("/chat/conversations", response_model=list[ConversationResponse])
+async def list_conversations(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all conversations for the current authenticated user."""
+    stmt = (
+        select(Conversation)
+        .where(Conversation.user_id == current_user.id)
+        .order_by(Conversation.updated_at.desc())
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+@router.get("/chat/conversations/{conversation_id}", response_model=ConversationDetailResponse)
+async def get_conversation(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get conversation details and full message history."""
+    try:
+        conv_uuid = uuid.UUID(conversation_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid conversation ID") from None
+
+    stmt = select(Conversation).where(
+        Conversation.id == conv_uuid,
+        Conversation.user_id == current_user.id,
+    )
+    result = await db.execute(stmt)
+    conv = result.scalar_one_or_none()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    msg_stmt = (
+        select(Message)
+        .where(Message.conversation_id == conv_uuid)
+        .order_by(Message.created_at.asc())
+    )
+    msg_result = await db.execute(msg_stmt)
+    messages = msg_result.scalars().all()
+
+    return ConversationDetailResponse(
+        id=conv.id,
+        title=conv.title,
+        created_at=conv.created_at,
+        updated_at=conv.updated_at,
+        messages=[
+            MessageResponse(
+                id=m.id,
+                conversation_id=m.conversation_id,
+                role=m.role,
+                content=m.content,
+                sources=m.sources or [],
+                metadata=m.msg_metadata or {},
+                created_at=m.created_at,
+            )
+            for m in messages
+        ],
+    )
+
+
+@router.patch("/chat/conversations/{conversation_id}", response_model=ConversationResponse)
+async def update_conversation(
+    conversation_id: str,
+    update_in: ConversationUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Rename/update conversation title."""
+    try:
+        conv_uuid = uuid.UUID(conversation_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid conversation ID") from None
+
+    stmt = select(Conversation).where(
+        Conversation.id == conv_uuid,
+        Conversation.user_id == current_user.id,
+    )
+    result = await db.execute(stmt)
+    conv = result.scalar_one_or_none()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    conv.title = update_in.title
+    await db.commit()
+    await db.refresh(conv)
+    return conv
+
+
+@router.delete("/chat/conversations/{conversation_id}")
+async def delete_conversation(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete conversation and all its messages."""
+    try:
+        conv_uuid = uuid.UUID(conversation_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid conversation ID") from None
+
+    stmt = select(Conversation).where(
+        Conversation.id == conv_uuid,
+        Conversation.user_id == current_user.id,
+    )
+    result = await db.execute(stmt)
+    conv = result.scalar_one_or_none()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    from sqlalchemy import delete
+    await db.execute(delete(Message).where(Message.conversation_id == conv_uuid))
+    await db.delete(conv)
+    await db.commit()
+    return {"status": "deleted", "id": conversation_id}
 

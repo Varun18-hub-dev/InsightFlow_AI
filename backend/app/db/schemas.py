@@ -102,6 +102,42 @@ class StreamChatRequest(BaseModel):
     document_ids: list[str] | None = None
 
 
+class MessageResponse(BaseModel):
+    id: UUID
+    conversation_id: UUID
+    role: str
+    content: str
+    sources: list[dict[str, Any]] | None = None
+    metadata: dict[str, Any] | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ConversationResponse(BaseModel):
+    id: UUID
+    title: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    message_count: int | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class ConversationDetailResponse(BaseModel):
+    id: UUID
+    title: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    messages: list[MessageResponse] = []
+
+    model_config = {"from_attributes": True}
+
+
+class ConversationUpdate(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+
+
 # ─── Feedback ────────────────────────────────────────────────────────────────
 
 class FeedbackCreate(BaseModel):

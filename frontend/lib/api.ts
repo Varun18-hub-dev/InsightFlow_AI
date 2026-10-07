@@ -5,6 +5,8 @@ import {
   User,
   Document,
   ChatResponse,
+  Conversation,
+  ConversationDetail,
   EvaluationRun,
   Experiment,
   HealthStatus,
@@ -71,6 +73,14 @@ export const apiClient = {
   chat: {
     send: async (query: string, conversation_id?: string): Promise<ChatResponse> =>
       api.post<ChatResponse>('/api/chat', { query, conversation_id }).then((r) => r.data),
+    listConversations: async (): Promise<Conversation[]> =>
+      api.get<Conversation[]>('/api/chat/conversations').then((r) => r.data),
+    getConversation: async (id: string): Promise<ConversationDetail> =>
+      api.get<ConversationDetail>(`/api/chat/conversations/${id}`).then((r) => r.data),
+    updateConversation: async (id: string, title: string): Promise<Conversation> =>
+      api.patch<Conversation>(`/api/chat/conversations/${id}`, { title }).then((r) => r.data),
+    deleteConversation: async (id: string): Promise<{ message: string }> =>
+      api.delete<{ message: string }>(`/api/chat/conversations/${id}`).then((r) => r.data),
     stream: (query: string, conversation_id?: string): EventSource => {
       const token = useAuthStore.getState().token;
       const base = (api.defaults.baseURL || '').replace(/\/+$/, '');
@@ -91,7 +101,9 @@ export const apiClient = {
       api.post<EvaluationRun>('/api/evaluations/run', { name }).then((r) => r.data)
   },
   experiments: {
-    list: async (): Promise<Experiment[]> => api.get<Experiment[]>('/api/experiments').then((r) => r.data)
+    list: async (): Promise<Experiment[]> => api.get<Experiment[]>('/api/experiments').then((r) => r.data),
+    runs: async (experimentName: string): Promise<any[]> =>
+      api.get<any[]>(`/api/experiments/${encodeURIComponent(experimentName)}/runs`).then((r) => r.data)
   },
   health: {
     check: async (): Promise<HealthStatus> => api.get<HealthStatus>('/api/health').then((r) => r.data)
