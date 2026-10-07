@@ -27,11 +27,11 @@ async def get_user_by_token(token: str, db: AsyncSession) -> User:
         headers={"WWW-Authenticate": "Bearer"},
     )
     payload = verify_token(token)
-    email: str = payload.get("email")
-    if email is None:
+    user_id = payload.get("sub")
+    if user_id is None:
         raise credentials_exception
 
-    stmt = select(User).where(User.email == email)
+    stmt = select(User).where(User.id == user_id)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
