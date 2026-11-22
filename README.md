@@ -11,7 +11,7 @@
 
 ## Project Overview
 
-**InsightFlow AI** is a production-grade Retrieval-Augmented Generation (RAG) platform designed to ingest, chunk, embed, and query complex enterprise documents. It leverages state-of-the-art LLMs (OpenAI, Gemini), vector databases (Pinecone), and robust backend orchestration (LangChain/LangGraph) to deliver highly accurate, contextual answers. 
+**InsightFlow AI** is a full-stack Retrieval-Augmented Generation (RAG) platform designed to ingest, chunk, embed, and query complex enterprise documents. It leverages state-of-the-art LLMs (OpenAI, Gemini), vector databases (Pinecone), and robust backend orchestration (LangChain/LangGraph) to answer questions over uploaded documents with cited context. 
 
 With InsightFlow AI, teams can chat with their data repositories, trace generation flows (LangSmith), track evaluation metrics (MLflow), and securely scale across AWS via a fully automated CI/CD pipeline.
 
@@ -62,12 +62,37 @@ graph LR
 - **RDS (PostgreSQL)** for application state.
 - **ElastiCache (Redis)** for session caching and chat history.
 
+## Evaluation
+
+Retrieval is measured offline on a public dataset, with confidence intervals and error
+analysis. Details, commands and caveats: [`backend/benchmarks/README.md`](backend/benchmarks/README.md).
+
+**SQuAD v1.1 dev, all 2,067 paragraphs, one question each** (95% bootstrap CI):
+
+| Config | Recall@1 | Recall@5 | MRR@10 |
+|---|---|---|---|
+| BM25 (stand-in for Postgres full-text search) | 0.780 [0.761, 0.797] | 0.926 [0.915, 0.937] | 0.843 [0.830, 0.856] |
+| BM25 + lightweight reranker | 0.794 [0.776, 0.811] | 0.930 [0.919, 0.940] | 0.852 [0.839, 0.865] |
+
+- The reranker improves ranking (MRR +0.009, p < 0.001), but not recall (p = 0.11).
+- Of the 45 true misses, 11 are context-dependent questions ("Why did he...?"), and many
+  others contain a misspelled key term that keyword search cannot match.
+- SQuAD favours keyword search, so these are optimistic numbers for BM25. Dense and hybrid
+  configurations are implemented in the benchmark but **not yet measured**. That run needs a
+  machine that can download the embedding model.
+
+An earlier evaluation reported 1.0 on nearly every metric. It used 10–15 hand-written questions
+over 5 documents, and its faithfulness score was inflated word overlap. It is kept, with that
+explanation, in [`docs/legacy_results/`](docs/legacy_results/). The inflation in the app's
+metrics is fixed: the generation scores are now labelled as lexical proxies, and Recall@K no
+longer returns 1.0 when a question has no ground truth.
+
 ## Quick Start
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/insightflow-ai.git
-   cd insightflow-ai
+   git clone https://github.com/Varun18-hub-dev/InsightFlow_AI.git
+   cd InsightFlow_AI
    ```
 
 2. **Initialize Environment**
@@ -155,7 +180,13 @@ Run unit and integration tests:
 bash scripts/run_tests.sh
 ```
 
-Run RAG Evaluation Pipeline (Requires DB & Backend running):
+Run the offline retrieval benchmark (no keys or database needed):
+```bash
+cd backend
+python -m benchmarks.run_retrieval_benchmark --configs bm25,bm25+light
+```
+
+Run the API-level evaluation (requires DB and backend running):
 ```bash
 cd evaluation
 python run_evaluation.py --api-url http://localhost:8000
@@ -177,6 +208,11 @@ bash infrastructure/aws/deploy.sh production
 See `infrastructure/aws/README.md` for complete VPC and ECS prerequisite setup.
 
 ## Known Limitations / Current State
+- Dense and hybrid retrieval have not yet been benchmarked (see Evaluation).
+- The in-app `faithfulness` and `answer_relevance` scores are word-overlap proxies, not LLM or
+  human judgements. Use `benchmarks/run_generation_benchmark.py` (SQuAD exact match / F1) for answer quality.
+- Follow-up questions are not rewritten with chat history before retrieval; the benchmark's error
+  analysis shows this is a real failure mode.
 - Document processing currently supports files up to 50MB.
 - Real-time OCR for scanned PDFs is experimental.
 - Local LLM inference (e.g., Ollama) is not yet supported.
@@ -185,6 +221,8 @@ See `infrastructure/aws/README.md` for complete VPC and ECS prerequisite setup.
 - [ ] Implement GraphRAG for complex multi-hop entity relationships.
 - [ ] Add support for Anthropic Claude 3 models.
 - [ ] Integrate local embedding options (SentenceTransformers) to reduce API costs.
+- [ ] Rewrite follow-up questions using chat history before retrieval.
+- [ ] Benchmark dense, hybrid and cross-encoder configs on SQuAD and BEIR SciFact.
 
 ## Contributing
 1. Fork the repo.
