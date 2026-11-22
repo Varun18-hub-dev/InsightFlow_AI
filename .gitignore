@@ -51,3 +51,6 @@ htmlcov/
 # Logs
 *.log
 logs/
+
+# Benchmark downloads and embedding caches
+backend/benchmarks/.cache/
