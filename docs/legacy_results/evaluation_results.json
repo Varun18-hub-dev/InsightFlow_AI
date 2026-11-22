@@ -1,0 +1,22 @@
+{
+  "dataset_size": 15,
+  "configurations": {
+    "semantic_only": {
+      "hit_rate": 1.0,
+      "recall@5": 1.0,
+      "precision@5": 0.20000000000000004,
+      "mrr": 1.0,
+      "latency": 0.5858427683512369
+    },
+    "hybrid_rrf_reranker": {
+      "hit_rate": 1.0,
+      "recall@5": 1.0,
+      "precision@5": 0.32000000000000006,
+      "mrr": 1.0,
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "latency": 0.5877287864685059
+    }
+  },
+  "timestamp": 1791133119.13496
+}

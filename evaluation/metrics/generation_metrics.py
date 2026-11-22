@@ -8,7 +8,7 @@ class FaithfulnessMetric(BaseMetric):
         
     @property
     def description(self) -> str:
-        return "Checks if answer only uses provided context (heuristic/proxy approach)."
+        return "Lexical proxy: share of answer words that also appear in the context. Not an LLM or human faithfulness judgement."
 
     def compute(self, answer: str, context: str) -> MetricResult:
         # Very naive heuristic for demonstration without requiring an LLM call.
@@ -21,8 +21,6 @@ class FaithfulnessMetric(BaseMetric):
             
         overlap = len(answer_words.intersection(context_words))
         score = overlap / len(answer_words)
-        # Cap score since exact word match isn't a perfect indicator
-        score = min(score * 1.5, 1.0)
         
         return MetricResult(self.name, score, self.description)
 
@@ -33,7 +31,7 @@ class AnswerRelevanceMetric(BaseMetric):
         
     @property
     def description(self) -> str:
-        return "Checks if answer is relevant to the question."
+        return "Lexical proxy: share of question words that also appear in the answer."
 
     def compute(self, question: str, answer: str) -> MetricResult:
         # Proxy: checks overlap of significant words between question and answer
@@ -45,7 +43,6 @@ class AnswerRelevanceMetric(BaseMetric):
             
         overlap = len(q_words.intersection(a_words))
         score = overlap / len(q_words)
-        score = min(score * 2.0, 1.0)
         
         return MetricResult(self.name, score, self.description)
 
@@ -56,7 +53,7 @@ class ContextRelevanceMetric(BaseMetric):
         
     @property
     def description(self) -> str:
-        return "Checks if retrieved context is relevant to the question."
+        return "Lexical proxy: share of question words that also appear in the retrieved context."
 
     def compute(self, question: str, context: str) -> MetricResult:
         q_words = set(re.findall(r'\w+', question.lower()))
@@ -67,6 +64,5 @@ class ContextRelevanceMetric(BaseMetric):
             
         overlap = len(q_words.intersection(c_words))
         score = overlap / len(q_words)
-        score = min(score * 1.5, 1.0)
         
         return MetricResult(self.name, score, self.description)

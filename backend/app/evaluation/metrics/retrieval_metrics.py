@@ -12,7 +12,9 @@ class RecallAtK(BaseMetric):
 
     def compute(self, retrieved_ids: list[str], relevant_ids: list[str], k: int = 5) -> MetricResult:
         if not relevant_ids:
-            return MetricResult(self.name, 1.0, self.description)
+            # No ground truth means recall is undefined. Scoring it as 1.0 silently
+            # inflated averages, so it now counts as 0.0 and is flagged.
+            return MetricResult(self.name, 0.0, self.description, {"k": k, "no_relevant_ids": True})
 
         retrieved_k = set(retrieved_ids[:k])
         relevant_set = set(relevant_ids)
