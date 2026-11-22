@@ -1,0 +1,136 @@
+{
+  "dataset": "squad",
+  "n_docs": 2067,
+  "n_chunks": 2925,
+  "n_queries": 2067,
+  "seed": 42,
+  "embedding_model": null,
+  "run_at": "2026-11-22T16:24:09+00:00",
+  "machine": "Linux x86_64, Python 3.13.18",
+  "configs": {
+    "bm25": {
+      "recall@1": {
+        "mean": 0.7799,
+        "ci95": [
+          0.7615,
+          0.7968
+        ]
+      },
+      "recall@5": {
+        "mean": 0.9265,
+        "ci95": [
+          0.9153,
+          0.9371
+        ]
+      },
+      "recall@10": {
+        "mean": 0.9482,
+        "ci95": [
+          0.9386,
+          0.9574
+        ]
+      },
+      "mrr@10": {
+        "mean": 0.843,
+        "ci95": [
+          0.8295,
+          0.8558
+        ]
+      },
+      "ndcg@10": {
+        "mean": 0.8689,
+        "ci95": [
+          0.8569,
+          0.88
+        ]
+      },
+      "answer_in_top5": {
+        "mean": 0.941,
+        "ci95": [
+          0.9308,
+          0.9507
+        ]
+      },
+      "latency_ms_p50": 3.34,
+      "latency_ms_p95": 7.3
+    },
+    "bm25+light": {
+      "recall@1": {
+        "mean": 0.7939,
+        "ci95": [
+          0.7765,
+          0.8108
+        ]
+      },
+      "recall@5": {
+        "mean": 0.9299,
+        "ci95": [
+          0.9192,
+          0.94
+        ]
+      },
+      "recall@10": {
+        "mean": 0.9511,
+        "ci95": [
+          0.9419,
+          0.9603
+        ]
+      },
+      "mrr@10": {
+        "mean": 0.8521,
+        "ci95": [
+          0.839,
+          0.8648
+        ]
+      },
+      "ndcg@10": {
+        "mean": 0.8765,
+        "ci95": [
+          0.8649,
+          0.8876
+        ]
+      },
+      "answer_in_top5": {
+        "mean": 0.941,
+        "ci95": [
+          0.9303,
+          0.9507
+        ]
+      },
+      "latency_ms_p50": 4.0,
+      "latency_ms_p95": 8.08
+    }
+  },
+  "vs_baseline": {
+    "bm25+light": {
+      "recall@5": {
+        "delta": 0.003386550556361877,
+        "ci_low": -0.0004837929366231253,
+        "ci_high": 0.00725689404934688,
+        "p_value": 0.11
+      },
+      "mrr@10": {
+        "delta": 0.009102410517504855,
+        "ci_low": 0.004504620990470047,
+        "ci_high": 0.013831990423971548,
+        "p_value": 0.0
+      }
+    }
+  },
+  "error_buckets": {
+    "bm25": {
+      "hit@1": 1612,
+      "hit@2-5": 303,
+      "answer_in_other_passage": 32,
+      "miss": 50,
+      "same_article_wrong_paragraph": 70
+    },
+    "bm25+light": {
+      "hit@1": 1641,
+      "hit@2-5": 281,
+      "answer_in_other_passage": 25,
+      "miss": 45,
+      "same_article_wrong_paragraph": 75
+    }
+  }
+}
