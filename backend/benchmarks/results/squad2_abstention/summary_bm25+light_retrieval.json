@@ -1,0 +1,12 @@
+{
+  "dataset": "squad2-dev",
+  "config": "bm25+light",
+  "n_answerable": 1204,
+  "n_unanswerable": 1204,
+  "seed": 42,
+  "retrieval_signal": {
+    "auroc_top_score_answerable_vs_unanswerable": 0.576,
+    "gold_paragraph_in_context_unanswerable": 0.9261,
+    "answer_in_context_answerable": 0.9485
+  }
+}
