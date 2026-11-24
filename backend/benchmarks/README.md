@@ -178,8 +178,8 @@ Paired results (same questions, paired bootstrap):
 | Given answers containing the gold answer (automatic) | 97.1% | 94.7% | – |
 
 **What changed.** 26 of the old hallucinations became correct refusals. Examples: "the context
-lists Goolsbee as the *former* chairman, not the current one" and "the paper's name was coined in
-1777, not 1774". One answer that was right before became wrong. 14 hallucinations remain: 11
+lists Goolsbee as the *former* chairman, not the current one" and "the name oxygen was coined
+in 1777, not 1774". One answer that was right before became wrong. 14 hallucinations remain: 11
 nearby-fact answers and 3 ignored negations.
 
 **What it costs.** The new prompt is more cautious. Six of its eleven "not found" replies to
