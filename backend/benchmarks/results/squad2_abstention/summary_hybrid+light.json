@@ -1,0 +1,74 @@
+{
+  "dataset": "squad2-dev",
+  "config": "hybrid+light",
+  "n_answerable": 150,
+  "n_unanswerable": 150,
+  "seed": 42,
+  "retrieval_signal": {
+    "auroc_top_score_answerable_vs_unanswerable": 0.5696,
+    "gold_paragraph_in_context_unanswerable": 0.92,
+    "answer_in_context_answerable": 0.9667
+  },
+  "llm": {
+    "model": "gemini-flash-lite-latest",
+    "errors": 0,
+    "refusal_rate_unanswerable": {
+      "mean": 0.7133,
+      "ci95": [
+        0.64,
+        0.7867
+      ],
+      "n": 150
+    },
+    "hallucination_rate_unanswerable": {
+      "mean": 0.2867,
+      "ci95": [
+        0.2133,
+        0.36
+      ],
+      "n": 150
+    },
+    "false_refusal_rate": {
+      "mean": 0.0552,
+      "ci95": [
+        0.0207,
+        0.0966
+      ],
+      "n": 145
+    },
+    "refusal_rate_answer_not_retrieved": {
+      "mean": 0.6,
+      "ci95": [
+        0.2,
+        1.0
+      ],
+      "n": 5
+    },
+    "f1_when_answered": {
+      "mean": 0.3018,
+      "ci95": [
+        0.2714,
+        0.3359
+      ],
+      "n": 137
+    },
+    "contains_gold_when_answered": {
+      "mean": 0.9708,
+      "ci95": [
+        0.9416,
+        0.9927
+      ],
+      "n": 137
+    },
+    "exact_match_when_answered": {
+      "mean": 0.0073,
+      "ci95": [
+        0.0,
+        0.0219
+      ],
+      "n": 137
+    },
+    "refusal_precision": 0.9322,
+    "refusal_recall": 0.7097
+  }
+}
