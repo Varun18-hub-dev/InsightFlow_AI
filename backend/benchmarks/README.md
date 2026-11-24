@@ -116,18 +116,68 @@ relevant, on-topic paragraph that still lacks the answer. So a "refuse if the re
 low" rule would not work, and refusing correctly depends entirely on the LLM following the
 prompt. That is what Part 2 measures.
 
-### Part 2: does the LLM refuse? (needs a key; not yet run)
+### Part 2: does the LLM refuse? (measured)
+
+Run: hybrid + reranker retrieval, `gemini-flash-lite-latest`, the app's production prompts,
+150 answerable + 150 unanswerable questions (seed 42), 0 API errors.
 
 ```bash
 python -m benchmarks.run_abstention_benchmark --configs hybrid+light \
     --embedding-model C:/models/bge-small-en-v1.5 --n-per-class 150 --rpm 10
 ```
 
-Reports, with 95% CIs: refusal rate on unanswerable questions (1 − this = hallucination rate),
-false refusals on questions whose answer *was* in the context, and answer correctness when it
-does answer. Every prediction is saved to `predictions_*.jsonl` for manual review. The
-`--rpm` limit keeps it inside free-tier rate limits (300 questions at 10 requests per minute is
-about 30 minutes).
+Files: [`summary_hybrid+light.json`](results/squad2_abstention/summary_hybrid+light.json),
+[`predictions_hybrid+light.jsonl`](results/squad2_abstention/predictions_hybrid+light.jsonl) (every answer),
+[`manual_review_hybrid+light.jsonl`](results/squad2_abstention/manual_review_hybrid+light.jsonl) (my labels).
+
+| Measure | Automatic detector | After manual review |
+|---|---|---|
+| **Hallucination rate on unanswerable questions** | 28.7% [21.3, 36.0] | **22.7%** [16.0, 29.3] (34 / 150) |
+| False refusals (answer was in the context) | 5.5% [2.1, 9.7] | **2.8%** [0.7, 5.5] (4 / 145) |
+| Given answers that contain the gold answer | 97.1% | – |
+| Refusal precision (when it refuses, it should have) | 93.2% | – |
+
+**Why manual review.** Refusals are detected with a phrase list, so I read every answer the
+detector disputed (43 "hallucinations" and 8 "false refusals"). Nine of the 43 were correct:
+the model rejected the question's false premise ("the Alps were drained, not flooded"; "the name
+was coined in 1777, not 1774") without using a refusal phrase. Two of the 8 "false refusals"
+had answered correctly and then added a caveat, and two were refusals of genuinely ambiguous
+questions ("When was he elected by Nixon?"). The detector agreed with my labels on 94% of
+unanswerable and 97% of answerable questions. All labels are in the manual review file.
+
+**What the 34 real hallucinations have in common.** None look made up from nothing. Each one
+restates something the passage says on the same topic, but answers a slightly different
+question than the one asked. (The saved predictions do not include the context, so this was
+judged from the answers and the SQuAD source paragraphs, not checked word by word.)
+- **29 answered a nearby fact without noticing a changed detail.** Asked "Who is the *current*
+  Chairman of Obama's Council of Economic Advisors?", it named the *former* chairman. Asked about
+  "Warsaw *Palace*", it answered about Warsaw.
+- **5 ignored a negation.** Asked "How many Khitan Tumens *weren't* there?", it said there were 3.
+
+**What this means for the fix.** A "quote your evidence" check would probably not catch these,
+because the quoted sentence would be real. The fix has to make the model check each detail of the question
+(names, dates, numbers, negations) against the context before answering.
+
+### Part 3: candidate fix (built, not yet run)
+
+[`prompts/rag_strict/answer.txt`](prompts/rag_strict/answer.txt) is a candidate prompt. It
+asks the model to check every detail of the question, and to reply "NOT FOUND:" plus the
+mismatched detail when any detail does not match. Run it on the same 300 questions, then compare
+paired:
+
+```bash
+python -m benchmarks.run_abstention_benchmark --configs hybrid+light \
+    --embedding-model C:/models/bge-small-en-v1.5 --n-per-class 150 --rpm 10 \
+    --prompts-dir benchmarks/prompts --prompt-set rag_strict
+
+python -m benchmarks.compare_abstention \
+    "benchmarks/results/squad2_abstention/predictions_hybrid+light.jsonl" \
+    "benchmarks/results/squad2_abstention/predictions_hybrid+light_rag_strict.jsonl"
+```
+
+It is only promoted to the app's `prompts/rag/` if hallucinations drop significantly *and*
+false refusals do not rise significantly. A prompt that refuses everything would score 0%
+hallucination, which is why the second condition matters.
 
 ## Answer quality (end to end)
 
