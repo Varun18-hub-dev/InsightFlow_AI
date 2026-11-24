@@ -160,12 +160,12 @@ def run(args) -> Path:
 
     out = Path(args.out) / args.dataset
     out.mkdir(parents=True, exist_ok=True)
-    (out / "summary.json").write_text(json.dumps(summary, indent=2))
+    (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     with open(out / "per_query.jsonl", "w", encoding="utf-8") as f:
         for name in names:
             for r in per_query[name]:
                 f.write(json.dumps({"config": name, **r}) + "\n")
-    (out / "summary.md").write_text(render_markdown(summary, per_query, corpus, metric_keys))
+    (out / "summary.md").write_text(render_markdown(summary, per_query, corpus, metric_keys), encoding="utf-8")
     print(f"wrote {out}")
     return out
 

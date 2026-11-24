@@ -114,7 +114,7 @@ def main():
     }
     out = HERE / "results" / "squad_generation"
     out.mkdir(parents=True, exist_ok=True)
-    (out / f"summary_{args.config}.json").write_text(json.dumps(summary, indent=2))
+    (out / f"summary_{args.config}.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     with open(out / f"predictions_{args.config}.jsonl", "w", encoding="utf-8") as f:
         for r in rows:
             f.write(json.dumps(r) + "\n")
