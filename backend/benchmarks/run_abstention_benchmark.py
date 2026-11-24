@@ -59,7 +59,8 @@ CITATION = re.compile(r"\(\s*Source:[^)]*\)", re.I)
 
 
 def is_refusal(text: str) -> bool:
-    return bool(REFUSAL.search(text))
+    # "NOT FOUND:" is the fixed marker the candidate prompt in benchmarks/prompts/rag_strict asks for.
+    return text.lstrip().upper().startswith("NOT FOUND") or bool(REFUSAL.search(text))
 
 
 def strip_citations(text: str) -> str:
@@ -140,6 +141,11 @@ def main():
     p.add_argument("--embedding-model", default="BAAI/bge-small-en-v1.5")
     p.add_argument("--n-per-class", type=int, default=150, help="answerable and unanswerable each; 0 = all")
     p.add_argument("--context-chunks", type=int, default=6, help="app default TOP_K_RERANK=6")
+    p.add_argument("--prompts-dir", default=None,
+                   help="folder of prompt sets; default is the app's own prompts/ folder")
+    p.add_argument("--prompt-set", default="rag",
+                   help="prompt set inside --prompts-dir: 'rag' = the app's production prompt; "
+                        "'rag_strict' (with --prompts-dir benchmarks/prompts) = the detail-checking candidate")
     p.add_argument("--retrieval-only", action="store_true", help="skip the LLM; report the retrieval-score AUROC only")
     p.add_argument("--concurrency", type=int, default=2)
     p.add_argument("--rpm", type=float, default=10, help="max LLM requests per minute (free tiers are low)")
@@ -176,6 +182,7 @@ def main():
     summary = {
         "dataset": "squad2-dev",
         "config": config,
+        "prompt_set": args.prompt_set,
         "n_answerable": sum(not r["unanswerable"] for r in rows),
         "n_unanswerable": sum(r["unanswerable"] for r in rows),
         "seed": args.seed,
@@ -194,9 +201,12 @@ def main():
         from app.core.prompt_manager import PromptManager
         from app.llm.factory import LLMProviderFactory
 
-        pm = PromptManager()
-        system = pm.get_prompt("rag", "system")
-        prompts = [(system, pm.render("rag", "answer", context=r["context"], question=r["question"])) for r in rows]
+        pm = PromptManager(Path(args.prompts_dir) if args.prompts_dir else None)
+        system = pm.get_prompt(args.prompt_set, "system")
+        if not system or not pm.get_prompt(args.prompt_set, "answer"):
+            raise SystemExit(f"prompt set '{args.prompt_set}' not found in {pm.base_dir}")
+        prompts = [(system, pm.render(args.prompt_set, "answer", context=r["context"], question=r["question"]))
+                   for r in rows]
         llm = LLMProviderFactory.get_provider()
         print(f"asking {llm.get_model_name()} {len(prompts)} questions at <= {args.rpm} requests/min ...")
         preds = asyncio.run(ask_all(llm, prompts, args.concurrency, args.rpm))
@@ -240,7 +250,8 @@ def main():
 
     out = Path(args.out) / "squad2_abstention"
     out.mkdir(parents=True, exist_ok=True)
-    tag = config + ("_retrieval" if args.retrieval_only else "")
+    tag = config + ("_retrieval" if args.retrieval_only else "") + (
+        "" if args.prompt_set == "rag" or args.retrieval_only else f"_{args.prompt_set}")
     (out / f"summary_{tag}.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     with open(out / f"predictions_{tag}.jsonl", "w", encoding="utf-8") as f:
         for r in rows:

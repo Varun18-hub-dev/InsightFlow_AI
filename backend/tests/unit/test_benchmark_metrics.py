@@ -109,3 +109,17 @@ def test_load_squad2_balances_answerable_and_unanswerable(tmp_path):
     corpus, queries = load_squad2(p, None, 0)
     assert len(corpus) == 1
     assert sorted(q["unanswerable"] for q in queries) == [False, True]
+
+
+def test_strict_prompt_marker_counts_as_refusal_and_prompt_set_exists():
+    from pathlib import Path
+
+    from app.core.prompt_manager import PromptManager
+    from benchmarks.run_abstention_benchmark import is_refusal
+
+    assert is_refusal("NOT FOUND: the context gives 1777, not 1774.")
+    assert is_refusal("  not found: no current chairman is named.")
+    pm = PromptManager(Path(__file__).resolve().parents[2] / "benchmarks" / "prompts")
+    rendered = pm.render("rag_strict", "answer", context="CTX", question="Q?")
+    assert "CTX" in rendered and "Q?" in rendered and "NOT FOUND:" in rendered
+    assert pm.get_prompt("rag_strict", "system")
