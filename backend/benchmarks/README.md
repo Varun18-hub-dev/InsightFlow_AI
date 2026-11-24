@@ -31,55 +31,62 @@ the best position.
 
 ## Results: SQuAD v1.1 dev, all 2,067 paragraphs
 
-Command: `python -m benchmarks.run_retrieval_benchmark --configs bm25,bm25+light`
+Command (CPU laptop, local BGE-small embeddings):
+
+```bash
+python -m benchmarks.run_retrieval_benchmark --configs bm25,dense,hybrid,hybrid+light \
+    --embedding-model BAAI/bge-small-en-v1.5
+```
+
 Full table: [`results/squad/summary.md`](results/squad/summary.md); every query's outcome:
 [`results/squad/per_query.jsonl`](results/squad/per_query.jsonl).
 
-| Config | Recall@1 | Recall@5 | MRR@10 | Answer in top 5 | p50 latency |
+| Config | Recall@1 | Recall@5 | Recall@10 | MRR@10 | Answer in top 5 |
 |---|---|---|---|---|---|
-| BM25 | 0.780 [0.761, 0.797] | 0.926 [0.915, 0.937] | 0.843 [0.830, 0.856] | 0.941 | 3.3 ms |
-| BM25 + lightweight reranker | 0.794 [0.776, 0.811] | 0.930 [0.919, 0.940] | 0.852 [0.839, 0.865] | 0.941 | 4.0 ms |
+| BM25 (keyword only) | 0.780 [0.761, 0.797] | 0.926 [0.915, 0.937] | 0.948 [0.939, 0.957] | 0.843 [0.830, 0.856] | 0.941 |
+| Dense (embeddings only) | 0.684 [0.664, 0.703] | 0.895 [0.881, 0.908] | 0.940 [0.929, 0.950] | 0.773 [0.757, 0.788] | 0.917 |
+| Hybrid (RRF) | 0.766 [0.748, 0.784] | 0.945 [0.935, 0.955] | **0.978** [0.971, 0.984] | 0.846 [0.833, 0.859] | **0.961** |
+| Hybrid + lightweight reranker | **0.782** [0.764, 0.800] | **0.947** [0.937, 0.956] | 0.972 [0.965, 0.979] | **0.854** [0.842, 0.867] | 0.957 |
+
+Paired difference against BM25 on the same 2,067 queries (95% bootstrap CI):
+
+| Config | Δ Recall@5 | p | Δ MRR@10 | p |
+|---|---|---|---|---|
+| Dense | −0.031 [−0.047, −0.015] | < 0.001 | −0.070 [−0.087, −0.054] | < 0.001 |
+| Hybrid | +0.019 [+0.009, +0.029] | < 0.001 | +0.003 [−0.008, +0.014] | 0.58 |
+| Hybrid + reranker | +0.020 [+0.011, +0.030] | < 0.001 | +0.011 [+0.001, +0.022] | 0.04 |
 
 **What this shows**
 
-1. **The lightweight reranker gives a small but real gain in ranking, not in coverage.**
-   MRR@10 improves by +0.009 (95% CI +0.005 to +0.014, p < 0.001). Recall@5 improves by +0.003,
-   but its CI includes zero (p = 0.11), so I do not claim a recall gain.
-2. **The 45 true misses (2.2%) fall into two clear groups.** I read all 45 (they are in
-   `per_query.jsonl`, bucket `miss`):
-   - **Context-dependent questions (11 of 45)**, such as "Why did he fire the secretary?" or
-     "What did this agreement do?". They were written while looking at the paragraph, so "he"
-     and "this" point to nothing. Chat users ask follow-ups like this all the time, which argues
-     for rewriting a follow-up question with the chat history before retrieval.
-   - **Misspelled key terms**, such as "Raouliii", "platycenida", "Cypiddids", "argricultural",
-     "Survivial". BM25 needs exact tokens, so one typo in the only rare word sinks the query.
-     This is the clearest case where dense retrieval should help, and it is what the hybrid
-     run below should confirm or refute.
-3. **Some "misses" are labelling gaps.** SQuAD marks only one paragraph as correct. In 25 of the
-   reranked misses, a different top-5 paragraph still contains the gold answer. Strict recall
-   counts these as failures, which is why answer-in-top-5 is reported next to it.
+1. **Hybrid search is justified by the data.** Neither retriever alone is best: hybrid beats
+   BM25 on Recall@5 by +0.019 (significant) and cuts true misses from 50 to 29. Per query, hybrid
+   + reranker moved 71 questions into the top 5 that BM25 missed, and lost 29 that BM25 had.
+2. **Dense alone is worse than BM25 on this dataset** (−0.031 Recall@5). SQuAD questions reuse
+   the paragraph's words, which favours keyword search. This is a property of SQuAD, so it does
+   not mean embeddings are useless; on a dataset with less word overlap the gap should shrink or
+   flip. That is why BEIR support is included.
+3. **Fusion improves coverage, the reranker restores ordering.** Plain RRF raises Recall@5 but
+   not MRR (p = 0.58), and Recall@1 dips slightly. Adding the lightweight reranker brings MRR to a
+   significant +0.011 over BM25 and gives the best Recall@1.
+4. **Embeddings fixed the misspelled-word misses, as predicted.** "Raouliii", "platycenida",
+   "Cypiddids" and "Melanchhon" were BM25 misses; all four reach the top 5 with hybrid. One
+   ("argricultural") still fails.
+5. **What still fails.** The 31 remaining misses are mostly context-dependent questions ("What
+   did this agreement do?", "Who presided over the assembly?") that cannot be resolved without
+   the paragraph. Hybrid did recover some ("Why did he fire the secretary?"), because the rest of
+   the question was specific enough. Rewriting follow-up questions with chat history before
+   retrieval is the next fix.
+6. **Some "misses" are labelling gaps.** SQuAD marks only one paragraph as correct. For 23
+   hybrid + reranker failures, another top-5 paragraph still contains the gold answer.
 
-**Caveat:** SQuAD questions share many words with their paragraph, which favours keyword search.
-These numbers are an upper bound for BM25 and should not be read as "BM25 is enough". The
-dense and hybrid configurations are the real test, and they need the run below.
+**Latency caveat:** dense and hybrid p50 is about 150–200 ms here because the query is embedded
+on a laptop CPU. In the app, query embedding is an API call and search is in Pinecone, so these
+latencies do not transfer. BM25 p50 is about 10 ms.
 
-## Not yet measured (needs a machine that can download models)
+## Not yet measured
 
-This workspace could not reach Hugging Face, so these configs have code and tests but no
-reported numbers yet:
-
-```bash
-# from backend/, with the BGE-small model downloaded locally (or let it download)
-python -m benchmarks.run_retrieval_benchmark \
-    --configs bm25,dense,hybrid,hybrid+light,hybrid+ce \
-    --embedding-model C:/models/bge-small-en-v1.5
-```
-
-The question this answers: does adding dense retrieval and RRF actually beat BM25 on this data,
-and is the cross-encoder worth its latency? If hybrid does not beat BM25 significantly, that is
-a result worth reporting, not hiding.
-
-A second dataset with less word overlap (BEIR SciFact or FiQA) can be run the same way:
+- **Cross-encoder reranker** (`hybrid+ce`): needs the `ms-marco-MiniLM` model downloaded.
+- **A second dataset** with less word overlap, such as BEIR SciFact:
 
 ```bash
 python -m benchmarks.run_retrieval_benchmark --dataset beir --beir-dir data/scifact --configs bm25,dense,hybrid

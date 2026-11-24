@@ -72,14 +72,17 @@ analysis. Details, commands and caveats: [`backend/benchmarks/README.md`](backen
 | Config | Recall@1 | Recall@5 | MRR@10 |
 |---|---|---|---|
 | BM25 (stand-in for Postgres full-text search) | 0.780 [0.761, 0.797] | 0.926 [0.915, 0.937] | 0.843 [0.830, 0.856] |
-| BM25 + lightweight reranker | 0.794 [0.776, 0.811] | 0.930 [0.919, 0.940] | 0.852 [0.839, 0.865] |
+| Dense (local BGE-small embeddings) | 0.684 [0.664, 0.703] | 0.895 [0.881, 0.908] | 0.773 [0.757, 0.788] |
+| Hybrid (RRF) | 0.766 [0.748, 0.784] | 0.945 [0.935, 0.955] | 0.846 [0.833, 0.859] |
+| Hybrid + lightweight reranker | **0.782** [0.764, 0.800] | **0.947** [0.937, 0.956] | **0.854** [0.842, 0.867] |
 
-- The reranker improves ranking (MRR +0.009, p < 0.001), but not recall (p = 0.11).
-- Of the 45 true misses, 11 are context-dependent questions ("Why did he...?"), and many
-  others contain a misspelled key term that keyword search cannot match.
-- SQuAD favours keyword search, so these are optimistic numbers for BM25. Dense and hybrid
-  configurations are implemented in the benchmark but **not yet measured**. That run needs a
-  machine that can download the embedding model.
+- Hybrid beats either retriever alone: +0.019 Recall@5 over BM25 (p < 0.001), and true misses
+  drop from 50 to 29.
+- Dense alone is worse than BM25 here, because SQuAD questions reuse the paragraph's words.
+  This favours keyword search, so a second dataset is the next run.
+- RRF improves coverage but not ordering; the reranker restores ordering (MRR +0.011, p = 0.04).
+- Embeddings recovered the misspelled-word misses ("platycenida", "Cypiddids"). Most remaining
+  misses are context-dependent questions ("What did this agreement do?").
 
 An earlier evaluation reported 1.0 on nearly every metric. It used 10–15 hand-written questions
 over 5 documents, and its faithfulness score was inflated word overlap. It is kept, with that
@@ -208,7 +211,7 @@ bash infrastructure/aws/deploy.sh production
 See `infrastructure/aws/README.md` for complete VPC and ECS prerequisite setup.
 
 ## Known Limitations / Current State
-- Dense and hybrid retrieval have not yet been benchmarked (see Evaluation).
+- The cross-encoder reranker and a second, harder dataset (BEIR SciFact) are not yet benchmarked.
 - The in-app `faithfulness` and `answer_relevance` scores are word-overlap proxies, not LLM or
   human judgements. Use `benchmarks/run_generation_benchmark.py` (SQuAD exact match / F1) for answer quality.
 - Follow-up questions are not rewritten with chat history before retrieval; the benchmark's error
@@ -222,7 +225,7 @@ See `infrastructure/aws/README.md` for complete VPC and ECS prerequisite setup.
 - [ ] Add support for Anthropic Claude 3 models.
 - [ ] Integrate local embedding options (SentenceTransformers) to reduce API costs.
 - [ ] Rewrite follow-up questions using chat history before retrieval.
-- [ ] Benchmark dense, hybrid and cross-encoder configs on SQuAD and BEIR SciFact.
+- [ ] Benchmark the cross-encoder reranker, and all configs on BEIR SciFact.
 
 ## Contributing
 1. Fork the repo.
