@@ -1,0 +1,66 @@
+{
+  "n_common": 300,
+  "hallucination_unanswerable": {
+    "a": 0.2867,
+    "b": 0.12,
+    "paired": {
+      "delta": -0.16666666666666666,
+      "ci_low": -0.22666666666666666,
+      "ci_high": -0.10666666666666667,
+      "p_value": 0.0
+    }
+  },
+  "false_refusal": {
+    "a": 0.0552,
+    "b": 0.0897,
+    "paired": {
+      "delta": 0.034482758620689655,
+      "ci_low": 0.0,
+      "ci_high": 0.06896551724137931,
+      "p_value": 0.067
+    }
+  },
+  "contains_gold_when_answered": {
+    "a": 0.9708,
+    "b": 0.947
+  },
+  "fixed_hallucinations": [
+    "Who were scientists intimidated by?",
+    "X.25 had a simpler what?",
+    "What happens to sediment layers that are also thinning?",
+    "What do those in political office refuse to sign when involved in civil disobedience?",
+    "What conditions can't be met to prescribe a controlled substance?",
+    "What do mesoglea adapt to when relying on brackish water?",
+    "How many bits are often in the primes used for RSA private key cryptography algorithms?",
+    "Who is the current Chairman of President Barack Obama's Council of Economic Advisors?",
+    "Western governments considered Islamists to be the worse of two evils when compared to whom?",
+    "How did Turabi build a weak economic base?",
+    "What kinds of literature were Social Darwinism and theories of race?",
+    "What is the central business district of downtown San Diego?",
+    "Who coined the name oxygen in 1774?",
+    "There are plenty of experiments that can distinguish whether it is the vehicle that s at rest or what?",
+    "What is the length of Hoek van Holland conventionally measured in?",
+    "How is registered property held in informal form?",
+    "Newtonian mechanisms are the definition of what?",
+    "What were the northern Alps flooded by?",
+    "When was the French and Indian Treaty?",
+    "Compounding was not popular in the loading of what machines?",
+    "What is the axis of Vistula which divides it into two parts?",
+    "When does a T cell identify pathogens?",
+    "What does Warsaw Palace's mixture of architectural styles reflect?",
+    "What does the loss of the thymus at an early age prevent?",
+    "What is the name given to the input string of a computational solution?",
+    "What complexity class do incompatible problems of NP problems exist?"
+  ],
+  "new_hallucinations": [
+    "Who is responsible for monitoring climate data?"
+  ],
+  "new_false_refusals": [
+    "What are two factors that directly effect how powerful a Turing machine may or may not be?",
+    "What are free-to-air encrypted broadcasts known as?",
+    "The long tentacles on the pleurbrachia are protected by what?",
+    "What lake connects the Rhine to Lake Constance?",
+    "What car is licensed by the FSO Car Factory and built in Egypt?",
+    "What other reason caused poor supply of New France from a difficult winter?"
+  ]
+}

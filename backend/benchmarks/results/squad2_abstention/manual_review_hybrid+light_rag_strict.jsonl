@@ -1,0 +1,31 @@
+{"qid": "5a0c96fbf5590b0018dab488", "question": "Most what in the Amazon have clearly defined boundaries?", "auto_refused": false, "manual_label": "correct_premise_correction", "note": ""}
+{"qid": "5ad24b13d7d075001a428bcc", "question": "What is oxygen on Earth, O, referred to as?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "5ad26000d7d075001a428fb1", "question": "What type of reaction produces oxygen in plane cabins?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "5ad1556e645df0001a2d17dc", "question": "What was not the aim of the TFEU article 34 law?", "auto_refused": false, "manual_label": "hallucination_ignored_negation", "note": ""}
+{"qid": "5705e99452bb89140068968c", "question": "What is the smallest geographical region discussed?", "auto_refused": true, "manual_label": "reasonable_refusal_ambiguous_question", "note": ""}
+{"qid": "5ad570b25b96ef001a10aedf", "question": "What simple measurements were defined by \"On the Computational Complexity of Algorithms\"?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "56e1b00ce3433e140042309f", "question": "What are two factors that directly effect how powerful a Turing machine may or may not be?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer", "note": ""}
+{"qid": "57263c78ec44d21400f3dc7c", "question": "2 differences betwen X.25 and ARPNET CITA technologies", "auto_refused": true, "manual_label": "false_refusal", "note": ""}
+{"qid": "5737a25ac3c5551400e51f52", "question": "What is used to calculate cross section area in the volume of an object?", "auto_refused": true, "manual_label": "false_refusal", "note": ""}
+{"qid": "5ad40158604f3c001a3ffd0f", "question": "How many Khitan Tumens weren't there?", "auto_refused": false, "manual_label": "hallucination_ignored_negation", "note": ""}
+{"qid": "57265746dd62a815002e821b", "question": "The long tentacles on the pleurbrachia are protected by what?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer", "note": ""}
+{"qid": "5ad24180d7d075001a428973", "question": "How many pairs of 2p orbitals lie along the O-O axis?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "5a2ecfb1a83784001a7d24c5", "question": "What was Twigg's first name?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "5ad40cdb604f3c001a400092", "question": "What did Mote think the Yuan class system didn't represent?", "auto_refused": false, "manual_label": "hallucination_ignored_negation", "note": ""}
+{"qid": "57096c95200fba1400367fbb", "question": "What are free-to-air encrypted broadcasts known as?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer", "note": ""}
+{"qid": "573383d0d058e614000b5c36", "question": "What car is licensed by the FSO Car Factory and built in Egypt?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer", "note": ""}
+{"qid": "5ad04d3077cf76001a686fa0", "question": "Where do seven lines of Metrolink run out of?", "auto_refused": false, "manual_label": "correct_premise_correction", "note": ""}
+{"qid": "5ad4abe25b96ef001a109d65", "question": "What is an example of a chemical barrier?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "5ad25f35d7d075001a428f6b", "question": "What is treated with medical chambers?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "5acff4b177cf76001a686617", "question": "Which is less costly, formal, or informal imperialism?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "5a3e307f378766001a0024d7", "question": "Who is responsible for monitoring climate data?", "auto_refused": false, "manual_label": "correct_premise_correction", "note": "says the IPCC does NOT monitor climate data (the question's premise)"}
+{"qid": "56e1b62ecd28a01900c67aa6", "question": "What is the most critical resource measured to in assessing the determination of a Turing machine's ability to solve any given set of problems?", "auto_refused": true, "manual_label": "false_refusal", "note": ""}
+{"qid": "5ad24ce8d7d075001a428c0f", "question": "What was discovered in 2006 in regard to O4?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "57340111d058e614000b677e", "question": "What other reason caused poor supply of New France from a difficult winter?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer", "note": ""}
+{"qid": "57264d9edd62a815002e80ff", "question": "When was he elected by Nixon?", "auto_refused": true, "manual_label": "reasonable_refusal_ambiguous_question", "note": ""}
+{"qid": "57294e6b1d04691400779276", "question": "What did the Kyoto Protocol try to address?", "auto_refused": true, "manual_label": "false_refusal", "note": ""}
+{"qid": "5ad21646d7d075001a4283c6", "question": "What is the most abundant element in the universe followed by hydrogen and helium?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}
+{"qid": "57287e512ca10214002da3fc", "question": "What was Tugh's Chinese-style name?", "auto_refused": true, "manual_label": "false_refusal", "note": ""}
+{"qid": "5ad265efd7d075001a4291d0", "question": "What damage was caused by breathing pure O in space applications?", "auto_refused": false, "manual_label": "correct_premise_correction", "note": ""}
+{"qid": "572f58d9a23a5019007fc57e", "question": "What lake connects the Rhine to Lake Constance?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer", "note": ""}
+{"qid": "5ad3ed26604f3c001a3ff79b", "question": "What fell to the Normans in the 10th century?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact", "note": ""}

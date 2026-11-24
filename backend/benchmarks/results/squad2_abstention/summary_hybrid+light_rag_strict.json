@@ -1,0 +1,75 @@
+{
+  "dataset": "squad2-dev",
+  "config": "hybrid+light",
+  "prompt_set": "rag_strict",
+  "n_answerable": 150,
+  "n_unanswerable": 150,
+  "seed": 42,
+  "retrieval_signal": {
+    "auroc_top_score_answerable_vs_unanswerable": 0.5696,
+    "gold_paragraph_in_context_unanswerable": 0.92,
+    "answer_in_context_answerable": 0.9667
+  },
+  "llm": {
+    "model": "gemini-flash-lite-latest",
+    "errors": 0,
+    "refusal_rate_unanswerable": {
+      "mean": 0.88,
+      "ci95": [
+        0.8267,
+        0.9267
+      ],
+      "n": 150
+    },
+    "hallucination_rate_unanswerable": {
+      "mean": 0.12,
+      "ci95": [
+        0.0733,
+        0.1733
+      ],
+      "n": 150
+    },
+    "false_refusal_rate": {
+      "mean": 0.0897,
+      "ci95": [
+        0.0483,
+        0.1379
+      ],
+      "n": 145
+    },
+    "refusal_rate_answer_not_retrieved": {
+      "mean": 1.0,
+      "ci95": [
+        1.0,
+        1.0
+      ],
+      "n": 5
+    },
+    "f1_when_answered": {
+      "mean": 0.3359,
+      "ci95": [
+        0.3012,
+        0.3678
+      ],
+      "n": 132
+    },
+    "contains_gold_when_answered": {
+      "mean": 0.947,
+      "ci95": [
+        0.9015,
+        0.9775
+      ],
+      "n": 132
+    },
+    "exact_match_when_answered": {
+      "mean": 0.0076,
+      "ci95": [
+        0.0,
+        0.0227
+      ],
+      "n": 132
+    },
+    "refusal_precision": 0.9133,
+    "refusal_recall": 0.8839
+  }
+}
