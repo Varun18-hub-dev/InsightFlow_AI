@@ -158,26 +158,45 @@ judged from the answers and the SQuAD source paragraphs, not checked word by wor
 because the quoted sentence would be real. The fix has to make the model check each detail of the question
 (names, dates, numbers, negations) against the context before answering.
 
-### Part 3: candidate fix (built, not yet run)
+### Part 3: candidate fix, A/B tested on the same 300 questions
 
-[`prompts/rag_strict/answer.txt`](prompts/rag_strict/answer.txt) is a candidate prompt. It
-asks the model to check every detail of the question, and to reply "NOT FOUND:" plus the
-mismatched detail when any detail does not match. Run it on the same 300 questions, then compare
-paired:
+[`prompts/rag_strict/answer.txt`](prompts/rag_strict/answer.txt) asks the model to check every
+detail of the question (names, numbers, dates, negations) against the context, and to reply
+"NOT FOUND:" plus the mismatched detail when anything does not match.
+
+Both runs were reviewed by hand with one rubric:
+[`manual_review_hybrid+light.jsonl`](results/squad2_abstention/manual_review_hybrid+light.jsonl),
+[`manual_review_hybrid+light_rag_strict.jsonl`](results/squad2_abstention/manual_review_hybrid+light_rag_strict.jsonl).
+Paired results (same questions, paired bootstrap):
+[`comparison_reviewed_app_vs_rag_strict.json`](results/squad2_abstention/comparison_reviewed_app_vs_rag_strict.json).
+
+| Reviewed, same 300 questions | Production prompt | Detail-checking prompt | Paired change |
+|---|---|---|---|
+| **Hallucination on unanswerable questions** | 22.7% [16.0, 29.3] | **9.3%** [5.3, 14.0] | **−13.3 pts** [−19.3, −8.0], p < 0.001 |
+| Refused with no useful answer (answer was in context) | 1.4% (2) | 3.4% (5) | +2.1 pts [0.0, +4.8], p = 0.08 |
+| Any "not found" reply when the answer was in context | 2.8% (4) | 7.6% (11) | +4.8 pts [+2.1, +9.0], p = 0.004 |
+| Given answers containing the gold answer (automatic) | 97.1% | 94.7% | – |
+
+**What changed.** 26 of the old hallucinations became correct refusals. Examples: "the context
+lists Goolsbee as the *former* chairman, not the current one" and "the paper's name was coined in
+1777, not 1774". One answer that was right before became wrong. 14 hallucinations remain: 11
+nearby-fact answers and 3 ignored negations.
+
+**What it costs.** The new prompt is more cautious. Six of its eleven "not found" replies to
+answerable questions still state the answer in the same sentence. For example: "NOT FOUND: the
+context says such broadcasts are known as free-to-view, not free-to-air." The user gets the
+answer, but it is marked as not found. Clear false refusals rose from 2 to 5, which is not
+significant (p = 0.08).
+
+**Decision: not promoted to the app yet.** It meets the rule I set (hallucinations down
+significantly, real false refusals not up significantly). But the prompt was written *after*
+reading the failures on these same 150 unanswerable questions, so this result is optimistic. It
+will be promoted only if it holds on a fresh sample, a different `--seed`, with both prompts:
 
 ```bash
-python -m benchmarks.run_abstention_benchmark --configs hybrid+light \
-    --embedding-model C:/models/bge-small-en-v1.5 --n-per-class 150 --rpm 10 \
-    --prompts-dir benchmarks/prompts --prompt-set rag_strict
-
-python -m benchmarks.compare_abstention \
-    "benchmarks/results/squad2_abstention/predictions_hybrid+light.jsonl" \
-    "benchmarks/results/squad2_abstention/predictions_hybrid+light_rag_strict.jsonl"
+python -m benchmarks.run_abstention_benchmark --configs hybrid+light --embedding-model C:/models/bge-small-en-v1.5 --n-per-class 150 --rpm 10 --seed 7
+python -m benchmarks.run_abstention_benchmark --configs hybrid+light --embedding-model C:/models/bge-small-en-v1.5 --n-per-class 150 --rpm 10 --seed 7 --prompts-dir benchmarks/prompts --prompt-set rag_strict
 ```
-
-It is only promoted to the app's `prompts/rag/` if hallucinations drop significantly *and*
-false refusals do not rise significantly. A prompt that refuses everything would score 0%
-hallucination, which is why the second condition matters.
 
 ## Answer quality (end to end)
 

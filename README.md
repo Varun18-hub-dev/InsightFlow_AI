@@ -85,10 +85,11 @@ analysis. Details, commands and caveats: [`backend/benchmarks/README.md`](backen
   misses are context-dependent questions ("What did this agreement do?").
 - **Unanswerable questions (SQuAD 2.0):** retrieval scores cannot flag them (AUROC 0.576 over
   2,408 questions). End to end with Gemini Flash-Lite and the production prompt (300 questions,
-  manually reviewed), the app **hallucinated on 22.7% [16.0, 29.3] of unanswerable questions**
-  and wrongly refused 2.8% of answerable ones. The 34 hallucinations restate passage content
-  but answer a slightly different question: a changed name or date, or an ignored "not". A
-  detail-checking prompt is built and waiting for an A/B run.
+  manually reviewed), the app **hallucinated on 22.7% of unanswerable questions**. Nearly all of
+  these answered a nearby true fact and missed a changed name, date or "not". A detail-checking
+  prompt cut this to **9.3%** (paired −13.3 pts, p < 0.001). The cost: more over-cautious "not
+  found" replies (2.8% → 7.6% of answerable questions, most still stating the answer). It is
+  awaiting confirmation on a fresh sample before it replaces the production prompt.
 
 An earlier evaluation reported 1.0 on nearly every metric. It used 10–15 hand-written questions
 over 5 documents, and its faithfulness score was inflated word overlap. It is kept, with that
@@ -218,7 +219,7 @@ See `infrastructure/aws/README.md` for complete VPC and ECS prerequisite setup.
 
 ## Known Limitations / Current State
 - The cross-encoder reranker and a second, harder dataset (BEIR SciFact) are not yet benchmarked.
-- The production prompt hallucinates on about 1 in 4–5 unanswerable questions (see Evaluation). A detail-checking candidate prompt is not yet A/B tested.
+- The production prompt hallucinates on about 1 in 4–5 unanswerable questions. The detail-checking prompt that cuts this to about 1 in 11 was designed on the same questions it was tested on, so it still needs a fresh-sample check (see Evaluation).
 - The in-app `faithfulness` and `answer_relevance` scores are word-overlap proxies, not LLM or
   human judgements. Use `benchmarks/run_generation_benchmark.py` (SQuAD exact match / F1) for answer quality.
 - Follow-up questions are not rewritten with chat history before retrieval; the benchmark's error
