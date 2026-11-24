@@ -77,3 +77,35 @@ def test_bm25_finds_the_obvious_document():
               "y": {"title": "Y", "text": "Photosynthesis happens in chloroplasts.", "group": "Y"}}
     idx = retrievers.BM25Index(retrievers.build_chunks(corpus))
     assert retrievers.collapse_to_docs(idx.search("where is the eiffel tower", 2))[0] == "x"
+
+
+def test_refusal_detector_matches_app_prompt_phrases_and_not_answers():
+    from benchmarks.run_abstention_benchmark import is_refusal, strip_citations
+
+    assert is_refusal("The requested information could not be found in the provided documents.")
+    assert is_refusal("I could not find sufficient information in the provided documents.")
+    assert is_refusal("The context does not mention who presided over the assembly.")
+    assert not is_refusal("Denver Broncos (Source: Super Bowl 50, Page 1)")
+    assert not is_refusal("It was finished in 1889.")
+    assert strip_citations("Denver Broncos (Source: Super Bowl 50, Page 1)") == "Denver Broncos"
+
+
+def test_auroc_extremes():
+    from benchmarks.run_abstention_benchmark import auroc
+
+    assert auroc([2, 3], [0, 1]) == 1.0
+    assert auroc([1, 1], [1, 1]) == 0.5
+    assert auroc([0], [1]) == 0.0
+
+
+def test_load_squad2_balances_answerable_and_unanswerable(tmp_path):
+    from benchmarks.run_abstention_benchmark import load_squad2
+
+    data = {"data": [{"title": "T", "paragraphs": [{"context": "The tower was built in 1889.", "qas": [
+        {"id": "a", "question": "When was it built?", "answers": [{"text": "1889"}], "is_impossible": False},
+        {"id": "u", "question": "When was it demolished?", "answers": [], "is_impossible": True}]}]}]}
+    p = tmp_path / "s2.json"
+    p.write_text(json.dumps(data))
+    corpus, queries = load_squad2(p, None, 0)
+    assert len(corpus) == 1
+    assert sorted(q["unanswerable"] for q in queries) == [False, True]
