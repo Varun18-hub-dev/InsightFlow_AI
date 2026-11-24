@@ -92,6 +92,43 @@ latencies do not transfer. BM25 p50 is about 10 ms.
 python -m benchmarks.run_retrieval_benchmark --dataset beir --beir-dir data/scifact --configs bm25,dense,hybrid
 ```
 
+## Saying "I don't know" (unanswerable questions)
+
+`run_abstention_benchmark.py` uses SQuAD 2.0 dev: 1,204 paragraphs, each with one answerable
+and one **unanswerable** question. The unanswerable ones were written to look answerable from
+that paragraph (same topic, same words), but the paragraph does not contain the answer. The
+pipeline is the app's own, including the production prompts in `prompts/rag/` and the
+`[Source: file, Page n]` context format from `app/api/chat.py`.
+
+### Part 1: can retrieval scores detect unanswerable questions? (measured)
+
+`python -m benchmarks.run_abstention_benchmark --configs bm25+light --retrieval-only --n-per-class 0`
+
+| Measure (all 2,408 questions) | Value |
+|---|---|
+| AUROC of the top retrieval score, answerable vs unanswerable | **0.576** (0.5 = chance) |
+| Unanswerable questions where the paragraph they were written on is in the 6 chunks sent to the LLM | 92.6% |
+| Answerable questions whose gold answer is in those 6 chunks | 94.9% |
+
+**What this shows:** retrieval cannot catch unanswerable questions. The top score is barely
+better than a coin flip at telling them apart, and for 93% of them the LLM receives a highly
+relevant, on-topic paragraph that still lacks the answer. So a "refuse if the retrieval score is
+low" rule would not work, and refusing correctly depends entirely on the LLM following the
+prompt. That is what Part 2 measures.
+
+### Part 2: does the LLM refuse? (needs a key; not yet run)
+
+```bash
+python -m benchmarks.run_abstention_benchmark --configs hybrid+light \
+    --embedding-model C:/models/bge-small-en-v1.5 --n-per-class 150 --rpm 10
+```
+
+Reports, with 95% CIs: refusal rate on unanswerable questions (1 − this = hallucination rate),
+false refusals on questions whose answer *was* in the context, and answer correctness when it
+does answer. Every prediction is saved to `predictions_*.jsonl` for manual review. The
+`--rpm` limit keeps it inside free-tier rate limits (300 questions at 10 requests per minute is
+about 30 minutes).
+
 ## Answer quality (end to end)
 
 `run_generation_benchmark.py` retrieves with a chosen config, asks the configured LLM to answer,

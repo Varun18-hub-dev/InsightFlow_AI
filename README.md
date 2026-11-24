@@ -83,6 +83,10 @@ analysis. Details, commands and caveats: [`backend/benchmarks/README.md`](backen
 - RRF improves coverage but not ordering; the reranker restores ordering (MRR +0.011, p = 0.04).
 - Embeddings recovered the misspelled-word misses ("platycenida", "Cypiddids"). Most remaining
   misses are context-dependent questions ("What did this agreement do?").
+- **Unanswerable questions (SQuAD 2.0, 2,408 questions):** the retrieval score cannot separate
+  answerable from unanswerable questions (AUROC 0.576, close to chance), and 93% of unanswerable
+  questions still retrieve their on-topic paragraph. So refusing correctly depends on the LLM
+  following the prompt; that end-to-end refusal rate is the next measurement.
 
 An earlier evaluation reported 1.0 on nearly every metric. It used 10–15 hand-written questions
 over 5 documents, and its faithfulness score was inflated word overlap. It is kept, with that
@@ -212,6 +216,7 @@ See `infrastructure/aws/README.md` for complete VPC and ECS prerequisite setup.
 
 ## Known Limitations / Current State
 - The cross-encoder reranker and a second, harder dataset (BEIR SciFact) are not yet benchmarked.
+- The LLM's refusal and hallucination rate on unanswerable questions is not yet measured (script ready: `benchmarks/run_abstention_benchmark.py`).
 - The in-app `faithfulness` and `answer_relevance` scores are word-overlap proxies, not LLM or
   human judgements. Use `benchmarks/run_generation_benchmark.py` (SQuAD exact match / F1) for answer quality.
 - Follow-up questions are not rewritten with chat history before retrieval; the benchmark's error
