@@ -110,29 +110,74 @@ def format_context(hits, corpus) -> str:
     return "\n\n---\n\n".join(parts) if parts else "No context available."
 
 
-async def ask_all(llm, prompts: list[tuple[str, str]], concurrency: int, rpm: float):
+QUOTA = re.compile(r"429|RESOURCE_EXHAUSTED|quota|rate limit", re.I)
+
+
+class QuotaExhausted(RuntimeError):
+    pass
+
+
+async def ask_all(llm, prompts: list[tuple[str, str]], keys: list[str], concurrency: int, rpm: float,
+                  checkpoint: Path, timeout: float = 120.0):
+    """Ask every prompt not already answered in `checkpoint`, saving each answer as it arrives.
+
+    A crash, a closed laptop or a used-up daily quota loses nothing: rerun the same command and
+    it continues from the checkpoint. Errors are not saved, so they are retried on the next run.
+    After 5 quota errors in a row it stops instead of hammering the API.
+    """
+    done: dict[str, str] = {}
+    if checkpoint.exists():
+        with open(checkpoint, encoding="utf-8") as f:
+            for line in f:
+                row = json.loads(line)
+                done[row["qid"]] = row["prediction"]
+    todo = [i for i, k in enumerate(keys) if k not in done]
+    print(f"{len(done)} answers already saved in {checkpoint.name}; asking {len(todo)} more")
+
     sem = asyncio.Semaphore(concurrency)
     gap = 60.0 / rpm if rpm else 0.0
-    lock, last = asyncio.Lock(), [0.0]
+    lock, last, quota_errors = asyncio.Lock(), [0.0], [0]
+    checkpoint.parent.mkdir(parents=True, exist_ok=True)
+    out = open(checkpoint, "a", encoding="utf-8")
 
-    async def one(system, user):
+    async def one(i):
+        system, user = prompts[i]
         async with sem:
-            if gap:
-                async with lock:
-                    wait = last[0] + gap - time.monotonic()
-                    if wait > 0:
-                        await asyncio.sleep(wait)
-                    last[0] = time.monotonic()
             for attempt in range(3):
+                if quota_errors[0] >= 5:
+                    return
+                if gap:
+                    async with lock:
+                        wait = last[0] + gap - time.monotonic()
+                        if wait > 0:
+                            await asyncio.sleep(wait)
+                        last[0] = time.monotonic()
                 try:
-                    return (await llm.chat([{"role": "system", "content": system},
-                                            {"role": "user", "content": user}])).strip()
-                except Exception as e:  # rate limits etc.; recorded, never hidden
-                    if attempt == 2:
-                        return f"__ERROR__ {e}"
-                    await asyncio.sleep(20 * (attempt + 1))
+                    pred = (await asyncio.wait_for(
+                        llm.chat([{"role": "system", "content": system}, {"role": "user", "content": user}]),
+                        timeout)).strip()
+                    quota_errors[0] = 0
+                    done[keys[i]] = pred
+                    out.write(json.dumps({"qid": keys[i], "prediction": pred}) + "\n")
+                    out.flush()
+                    return
+                except Exception as e:  # timeouts, rate limits; never saved, so retried next run
+                    if QUOTA.search(str(e)):
+                        quota_errors[0] += 1
+                    if attempt < 2:
+                        await asyncio.sleep(20 * (attempt + 1))
 
-    return await asyncio.gather(*(one(s, u) for s, u in prompts))
+    try:
+        await asyncio.gather(*(one(i) for i in todo))
+    finally:
+        out.close()
+    missing = [k for k in keys if k not in done]
+    if missing:
+        hint = ("The API keeps returning quota/rate-limit errors, most likely the free tier's daily limit. "
+                if quota_errors[0] >= 5 else "")
+        raise QuotaExhausted(f"{len(missing)} of {len(keys)} questions still unanswered. {hint}"
+                             f"Progress is saved; rerun the same command later to continue.")
+    return [done[k] for k in keys]
 
 
 def main():
@@ -209,7 +254,11 @@ def main():
                    for r in rows]
         llm = LLMProviderFactory.get_provider()
         print(f"asking {llm.get_model_name()} {len(prompts)} questions at <= {args.rpm} requests/min ...")
-        preds = asyncio.run(ask_all(llm, prompts, args.concurrency, args.rpm))
+        ckpt = HERE / ".cache" / f"abstention_{config}_{args.prompt_set}_seed{args.seed}_n{args.n_per_class}.jsonl"
+        try:
+            preds = asyncio.run(ask_all(llm, prompts, [r["qid"] for r in rows], args.concurrency, args.rpm, ckpt))
+        except QuotaExhausted as e:
+            raise SystemExit(str(e)) from None
         for r, pred in zip(rows, preds, strict=True):
             r["prediction"] = pred
             r["error"] = pred.startswith("__ERROR__")
