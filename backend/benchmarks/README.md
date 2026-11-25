@@ -158,6 +158,11 @@ judged from the answers and the SQuAD source paragraphs, not checked word by wor
 because the quoted sentence would be real. The fix has to make the model check each detail of the question
 (names, dates, numbers, negations) against the context before answering.
 
+**Free-tier runs are resumable.** Every answer is saved to `benchmarks/.cache/` as it arrives.
+If a run stops because the daily quota is used up, the laptop sleeps or something crashes,
+rerun the same command and it continues where it stopped. After 5 quota errors in a row it stops
+by itself instead of retrying all night. Gemini's daily quota resets at midnight Pacific time.
+
 ### Part 3: candidate fix, A/B tested on the same 300 questions
 
 [`prompts/rag_strict/answer.txt`](prompts/rag_strict/answer.txt) asks the model to check every
