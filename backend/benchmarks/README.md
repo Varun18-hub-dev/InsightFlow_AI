@@ -193,15 +193,39 @@ context says such broadcasts are known as free-to-view, not free-to-air." The us
 answer, but it is marked as not found. Clear false refusals rose from 2 to 5, which is not
 significant (p = 0.08).
 
-**Decision: not promoted to the app yet.** It meets the rule I set (hallucinations down
-significantly, real false refusals not up significantly). But the prompt was written *after*
-reading the failures on these same 150 unanswerable questions, so this result is optimistic. It
-will be promoted only if it holds on a fresh sample, a different `--seed`, with both prompts:
+### Part 4: confirmation on a fresh sample (seed 7), then promoted
 
-```bash
-python -m benchmarks.run_abstention_benchmark --configs hybrid+light --embedding-model C:/models/bge-small-en-v1.5 --n-per-class 150 --rpm 10 --seed 7
-python -m benchmarks.run_abstention_benchmark --configs hybrid+light --embedding-model C:/models/bge-small-en-v1.5 --n-per-class 150 --rpm 10 --seed 7 --prompts-dir benchmarks/prompts --prompt-set rag_strict
-```
+The Part 3 prompt was written after reading the failures on the seed-42 questions, so that
+result could be optimistic. Both prompts were rerun on 300 **different** questions (seed 7) and
+reviewed by hand with the same rubric:
+[`manual_review_hybrid+light_seed7.jsonl`](results/squad2_abstention/manual_review_hybrid+light_seed7.jsonl),
+[`manual_review_hybrid+light_rag_strict_seed7.jsonl`](results/squad2_abstention/manual_review_hybrid+light_rag_strict_seed7.jsonl),
+[`comparison_reviewed_app_vs_rag_strict_seed7.json`](results/squad2_abstention/comparison_reviewed_app_vs_rag_strict_seed7.json).
+
+| Reviewed, fresh 300 questions (seed 7) | Old prompt | Detail-checking prompt | Paired change |
+|---|---|---|---|
+| **Hallucination on unanswerable questions** | 30.0% (45/150) | **14.7%** (22/150) | **−15.3 pts** [−21.3, −10.0], p < 0.001 |
+| Refused with no useful answer (answer was in context) | 2.1% (3/144) | 4.2% (6/144) | +2.1 pts [−0.7, +5.6], p = 0.26 |
+| Any "not found" reply when the answer was in context | 4.2% (6/144) | 12.5% (18/144) | +8.3 pts [+3.5, +13.2], p < 0.001 |
+| Given answers containing the gold answer (automatic) | 92.8% | 93.7% | – |
+
+**Result:** the improvement holds on questions the prompt was not designed on. Hallucination
+roughly halves (30.0% → 14.7%; seed 42: 22.7% → 9.3%). No answer that was correct under the old
+prompt became a hallucination (0 new hallucinations, 31 fixed, automatic detector). Clear false
+refusals do not rise significantly. The cost is over-cautious replies: 12 of the new prompt's 18
+"not found" replies to answerable questions still state the answer, but are marked as not found.
+Example: "NOT FOUND: … they mention Thoreau advising a taxman when refusing to pay his tax."
+
+**Decision: promoted.** The prompt meets the rule on both samples, so `prompts/rag/answer.txt`
+is now the detail-checking prompt. A unit test keeps it identical to the benchmarked version
+(`tests/unit/test_prompt_manager.py`). The app's grounding check also treats "NOT FOUND:" as a
+refusal (`app/agents/nodes/verification.py`). The previous prompt is kept as
+`benchmarks/prompts/rag_v1/`. All result files above labelled `prompt_set: "rag"` were produced
+with that old version; reproduce them with `--prompts-dir benchmarks/prompts --prompt-set rag_v1`.
+
+**Next iteration:** the over-cautious replies. When the answer is in the context but the question
+words it differently, the prompt should answer and add a one-line note instead of starting with
+"NOT FOUND:". Any new wording must be A/B tested the same way, on a third seed.
 
 ## Answer quality (end to end)
 
