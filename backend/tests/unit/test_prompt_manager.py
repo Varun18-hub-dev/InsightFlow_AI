@@ -119,3 +119,15 @@ def test_startup_validation_fails_on_missing_in_production(tmp_path):
         assert "rag/system" in missing
         assert "rag/answer" in missing
 
+
+
+def test_rag_answer_prompt_is_the_benchmarked_detail_checking_prompt():
+    """The production answer prompt must match the version that was A/B tested
+    (benchmarks/prompts/rag_strict). If you change one, re-run the benchmark."""
+    from pathlib import Path
+
+    from app.core.prompt_manager import prompt_manager
+
+    tested = (Path(__file__).resolve().parents[2] / "benchmarks" / "prompts" / "rag_strict" / "answer.txt").read_text(encoding="utf-8")
+    assert prompt_manager.get_prompt("rag", "answer").strip() == tested.strip()
+    assert "NOT FOUND:" in prompt_manager.get_prompt("rag", "answer")

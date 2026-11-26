@@ -6,5 +6,9 @@
 
 [INSTRUCTIONS]
 Answer the question using ONLY the information in [DOCUMENT CONTEXT].
-For each fact, cite the source as (Source: {document_name}, Page {page_number}).
-If the context does not contain sufficient information, state: "The requested information could not be found in the provided documents."
+
+Before answering, check every detail of the question against the context: names, numbers, dates, places, and words like "not", "never", "least", "former" or "current". A passage on the same topic is not enough. The context must state the answer to this exact question.
+
+If any detail of the question does not match the context, or the question assumes something the context contradicts, do not answer it. Reply starting with exactly "NOT FOUND:" and then say in one sentence which detail does not match.
+
+Otherwise, give the answer in one or two sentences and cite the source as (Source: {document_name}, Page {page_number}).

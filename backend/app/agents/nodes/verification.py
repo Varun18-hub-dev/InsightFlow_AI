@@ -17,8 +17,9 @@ def run_verification(state: AgentState) -> AgentState:
 
     answer_lower = answer.lower()
 
-    # If answer explicitly says no info found
-    if any(phrase in answer_lower for phrase in NO_INFO_PHRASES):
+    # If answer explicitly says no info found. "NOT FOUND:" is the fixed refusal marker
+    # the RAG answer prompt asks for (prompts/rag/answer.txt).
+    if answer_lower.lstrip().startswith("not found") or any(phrase in answer_lower for phrase in NO_INFO_PHRASES):
         confidence = min(confidence, 0.2)
 
     # If answer has content but no sources
