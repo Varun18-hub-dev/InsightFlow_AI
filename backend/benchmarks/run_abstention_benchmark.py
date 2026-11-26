@@ -301,6 +301,9 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     tag = config + ("_retrieval" if args.retrieval_only else "") + (
         "" if args.prompt_set == "rag" or args.retrieval_only else f"_{args.prompt_set}")
+    # Seed 42 keeps the original file names; any other seed gets its own files so runs never overwrite each other.
+    if args.seed != 42:
+        tag += f"_seed{args.seed}"
     (out / f"summary_{tag}.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     with open(out / f"predictions_{tag}.jsonl", "w", encoding="utf-8") as f:
         for r in rows:
