@@ -1,0 +1,76 @@
+{
+  "n_common": 300,
+  "hallucination_unanswerable": {
+    "a": 0.3533,
+    "b": 0.1467,
+    "paired": {
+      "delta": -0.20666666666666667,
+      "ci_low": -0.26666666666666666,
+      "ci_high": -0.14666666666666667,
+      "p_value": 0.0
+    }
+  },
+  "false_refusal": {
+    "a": 0.0417,
+    "b": 0.125,
+    "paired": {
+      "delta": 0.08333333333333333,
+      "ci_low": 0.034722222222222224,
+      "ci_high": 0.13194444444444445,
+      "p_value": 0.001
+    }
+  },
+  "contains_gold_when_answered": {
+    "a": 0.9275,
+    "b": 0.9365
+  },
+  "fixed_hallucinations": [
+    "On-site sensing is being used by indigenous tribes for what",
+    "Who is usually hired for a design-bid-build contract?",
+    "What was Virgin Media rebranded as?",
+    "In what year did the name \"black death\" spread into Germany?",
+    "Who first came up with the bubonic plague theory?",
+    "What speed did the National Highway Designation Act prevent you from going beyond?",
+    "What is the snowiest peak in Victoria?",
+    "What did the ASER report show about how people feel about private schools?",
+    "When did Millerton residents move out of Fresno?",
+    "What is significant about the age of Downtown Fresno?",
+    "What does the large pharynx do in the Beroe when its not feeding?",
+    "What theorem states that the probability that a number n is prime is inversely proportional to its direction?",
+    "Why don't Islamists need democratic elections?",
+    "What Egyptian president jailed hundreds of members of the Brotherhood?",
+    "The committees in Scottish Parliament are weaker then in other systems why?",
+    "Unreserved matters are subjects who are where?",
+    "What is not the main judicial body of the EU?",
+    "In which French city was about 2,000 Huguenots killed?",
+    "Where have Genesis geologists measured oxygen isotopes?",
+    "What is carbon monoxide poisonous to that can cause gas gangrene?",
+    "What is held inside the formal legal ownership registration system in many developing countries?",
+    "Why did the demand for rentals increase?",
+    "What is the name of the famous rock that the Rhine flows into?",
+    "In what year did Boleslaw become the official capital of the Masovian Duchy?",
+    "What cells are unable to remember specific pathogens?",
+    "What type of flower is sought on Wianki?",
+    "What type of graph is an example of an output used in a decision problem?",
+    "What is the expression set called where three integers are multiplied?",
+    "How is the time needed to obtain the question to a problem calculated?",
+    "What type of machine is a computational model that is not allowed to branch out to check many different possibilities at once?",
+    "What machine does not define BPP, ZPP, and RP?"
+  ],
+  "new_hallucinations": [],
+  "new_false_refusals": [
+    "What was the name of the Norman castle?",
+    "What are two factors that directly effect how powerful a Turing machine may or may not be?",
+    "In considering Turing machines and alternate variables, what measurement left unaffected by conversion between machine models?",
+    "In what year did Joseph Priestley recognize oxygen?",
+    "Who else did DATNET 1 refer to",
+    "Which article allows the European Council to govern mergers between firms?",
+    "What are the components of drug therapy?",
+    "Why is majority rule used?",
+    "Which provinces in Canada limit the rights of pharmacists in prescribing?",
+    "Le grand concludes that an author's words offer only what they intended for them to imply regarding this type of terminology?",
+    "Who was Kublai Khan's grandfather?",
+    "Who was famous for disobedience against a tax collector?",
+    "Why did natural sedimentation by the Rhine compensate the transgression bby the sea?"
+  ]
+}

@@ -1,0 +1,59 @@
+{"qid": "5ad40158604f3c001a3ffd0f", "question": "How many Khitan Tumens weren't there?", "auto_refused": false, "manual_label": "hallucination_ignored_negation"}
+{"qid": "5ad4d6a75b96ef001a10a2ca", "question": "What cells are unable to remember specific pathogens?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a83894de60761001a2eb78d", "question": "What does the large pharynx do in the Beroe when its not feeding?", "auto_refused": false, "manual_label": "hallucination_ignored_negation"}
+{"qid": "5a25eed2c93d92001a40034a", "question": "Who is usually hired for a design-bid-build contract?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a25e8d5ef59cd001a623d18", "question": "What forms of procurement happen within the construction industry?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad24600d7d075001a428ac9", "question": "In which French city was about 2,000 Huguenots killed?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad25eead7d075001a428f4d", "question": "Where does the pattern of lower income-longer lives still hold true?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad3c061604f3c001a3fef73", "question": "What is continuing with energy levels far beyond the turn of the 20th century?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5acfe69177cf76001a6863c2", "question": "Why don't Islamists need democratic elections?", "auto_refused": false, "manual_label": "correct_premise_correction"}
+{"qid": "5ad3b3dc604f3c001a3fed6b", "question": "What other clashes weren't involved in taking Louisbourg?", "auto_refused": false, "manual_label": "hallucination_ignored_negation"}
+{"qid": "5728e8212ca10214002daa6c", "question": "What type of government investigations apply to civil disobedience?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer"}
+{"qid": "5ad53f815b96ef001a10abe5", "question": "What is the expression set called where three integers are multiplied?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad4abe25b96ef001a109d65", "question": "What is an example of a chemical barrier?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "572750df5951b619008f8830", "question": "What stipend do students enrolled in priority courses receive?", "auto_refused": true, "manual_label": "false_refusal"}
+{"qid": "5a2eccc9a83784001a7d249f", "question": "Who first came up with the bubonic plague theory?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "572a1c943f37b319004786e3", "question": "Why did the demand for rentals decrease?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer"}
+{"qid": "57280e1aff5b5019007d9bee", "question": "What civilization did the pottery belong to?", "auto_refused": true, "manual_label": "false_refusal"}
+{"qid": "5ad265d2d7d075001a4291c6", "question": "What is held inside the formal legal ownership registration system in many developing countries?", "auto_refused": false, "manual_label": "correct_premise_correction"}
+{"qid": "5a75028897ca42001a521db3", "question": "What caused the crisis?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad14b2e645df0001a2d15ea", "question": "What treaty is the Social Chapter not a chapter of?", "auto_refused": false, "manual_label": "hallucination_ignored_negation"}
+{"qid": "5ad41b12604f3c001a4004fd", "question": "In what century was the Olympic balancing system used?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad505165b96ef001a10a9f5", "question": "When did Polonia Ekstraklasa win the country's championship prior to 2000?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a3e40d1378766001a00251e", "question": "What year was the third assessment report published?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a7b325021c2de001afe9dac", "question": "What is significant about the age of Downtown Fresno?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a0c96fbf5590b0018dab486", "question": "On-site sensing is being used by indigenous tribes for what", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad26367d7d075001a429101", "question": "What is inequality associated with lower levels of?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "572a12386aef051400155235", "question": "Hormones released during sleep support the interaction of T-cells and what species?", "auto_refused": true, "manual_label": "overcautious_refusal_but_states_answer"}
+{"qid": "5a2ec431a83784001a7d2451", "question": "In what year did the name \"black death\" spread into Germany?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad0327377cf76001a686e05", "question": "The committees in Scottish Parliament are weaker then in other systems why?", "auto_refused": false, "manual_label": "correct_premise_correction"}
+{"qid": "5ad560b85b96ef001a10ad1f", "question": "What machine does not define BPP, ZPP, and RP?", "auto_refused": false, "manual_label": "hallucination_ignored_negation"}
+{"qid": "5ad24fb7d7d075001a428c95", "question": "What scale doesn't trade liberalization shift economic inequality from?", "auto_refused": false, "manual_label": "hallucination_ignored_negation"}
+{"qid": "5a679cc7f038b7001ab0c347", "question": "What did the ASER report show about how people feel about private schools?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad29f7ed7d075001a429c75", "question": "When were the Alps formed?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad541ad5b96ef001a10abec", "question": "How is the time needed to obtain the question to a problem calculated?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad418fb604f3c001a400431", "question": "What limits the Rankine cycle's temperatures?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad5489b5b96ef001a10ac2b", "question": "What type of machine is a computational model that is not allowed to branch out to check many different possibilities at once?", "auto_refused": false, "manual_label": "hallucination_ignored_negation"}
+{"qid": "5acfea0677cf76001a686466", "question": "What Egyptian president jailed hundreds of members of the Brotherhood?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad4bea25b96ef001a109ef9", "question": "In what year did Boleslaw become the official capital of the Masovian Duchy?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a38bf63a4b263001a8c18fb", "question": "What speed did the National Highway Designation Act prevent you from going beyond?", "auto_refused": false, "manual_label": "correct_premise_correction"}
+{"qid": "5ad02aff77cf76001a686c7d", "question": "Early Western texts referencing the North describe the people as being what?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad25553d7d075001a428d34", "question": "Where have Genesis geologists measured oxygen isotopes?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a6391c268151a001a92238c", "question": "What part does fishing play in Victoria's economy play?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad4de4c5b96ef001a10a4dc", "question": "What has often been studied in unicellular eukaryotes?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a8913713b2508001a72a4a1", "question": "What theorem states that the probability that a number n is prime is inversely proportional to its direction?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad500e95b96ef001a10a916", "question": "What type of flower is sought on Wianki?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad266efd7d075001a4291f6", "question": "Why did the demand for rentals increase?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a6394b768151a001a922397", "question": "What is the snowiest peak in Victoria?", "auto_refused": false, "manual_label": "correct_premise_correction"}
+{"qid": "5ad25f35d7d075001a428f6c", "question": "What is carbon monoxide poisonous to that can cause gas gangrene?", "auto_refused": false, "manual_label": "correct_premise_correction"}
+{"qid": "5ad3fc1f604f3c001a3ffb7e", "question": "On what vehicles do full size working engines sometimes use oscillating cylinder rocks?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad03cd377cf76001a686ec4", "question": "Unreserved matters are subjects who are where?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad02a9777cf76001a686c5e", "question": "Parliament elects two MSPs to serve as what officers?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5a2c1622bfd06b001a5ae9e0", "question": "What was Virgin Media rebranded as?", "auto_refused": false, "manual_label": "correct_premise_correction"}
+{"qid": "5ad53d705b96ef001a10abd2", "question": "What type of graph is an example of an output used in a decision problem?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "57268f2bf1498d1400e8e3c5", "question": "What was an additional projected effect of the attempted reform?", "auto_refused": true, "manual_label": "false_refusal"}
+{"qid": "5a7b05cd21c2de001afe9cd9", "question": "When did Millerton residents move out of Fresno?", "auto_refused": false, "manual_label": "correct_premise_correction"}
+{"qid": "5ad139b2645df0001a2d1293", "question": "What is not the main judicial body of the EU?", "auto_refused": false, "manual_label": "hallucination_ignored_negation"}
+{"qid": "5ad28253d7d075001a429832", "question": "Where does the Upper Rhine flow through?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad26000d7d075001a428fb1", "question": "What type of reaction produces oxygen in plane cabins?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
+{"qid": "5ad28098d7d075001a4297bb", "question": "What is the name of the famous rock that the Rhine flows into?", "auto_refused": false, "manual_label": "hallucination_answered_nearby_fact"}
