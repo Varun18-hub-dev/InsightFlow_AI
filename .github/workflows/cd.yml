@@ -1,8 +1,9 @@
-﻿name: CD
+name: CD
 
+# Manual only: deploying needs AWS credentials (secrets.AWS_DEPLOY_ROLE_ARN) that this repo
+# does not have, so running it on every push only produced failed runs.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
