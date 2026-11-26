@@ -14,6 +14,9 @@ from app.llm.gemini_provider import GeminiProvider
 def provider():
     with patch("app.llm.gemini_provider.ChatGoogleGenerativeAI"):
         p = GeminiProvider()
+        # CI has no real key; give the provider a dummy one so the tests reach the code
+        # they are about. test_gemini_validates_missing_api_key clears it explicitly.
+        p.api_key = "test-key"
         return p
 
 

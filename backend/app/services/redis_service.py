@@ -41,7 +41,7 @@ class RedisService:
     @staticmethod
     def generate_cache_key(query: str, user_id: str, **kwargs) -> str:
         content = f"{query}:{user_id}:{sorted(kwargs.items())}"
-        return hashlib.md5(content.encode()).hexdigest()
+        return hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()  # cache key, not security
 
     async def get_cached_response(self, cache_key: str) -> dict | None:
         client = await self._get_client()
